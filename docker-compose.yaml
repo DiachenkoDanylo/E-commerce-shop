@@ -1,0 +1,33 @@
+name: e-commerce-shop
+
+services:
+  database:
+    restart: always
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: diachenko
+      POSTGRES_DB: ecommerceshop
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+
+  backend:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: backend/target/backend-1.0-SNAPSHOT-exec.jar
+    ports:
+      - '8080:8080'
+
+#  frontend:
+#    build: .
+#    container_name: angular-app
+#    ports:
+#      - '4200:4200'
+#    volumes:
+#      - ./frontend:/angular-app
+#    environment:
+#      - STYLE=css
