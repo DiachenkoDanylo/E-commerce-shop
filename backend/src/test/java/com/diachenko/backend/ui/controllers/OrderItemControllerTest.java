@@ -29,18 +29,16 @@ import static org.mockito.Mockito.when;
 @WebMvcTest(OrderItemController.class)
 class OrderItemControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
     @MockBean
     private OrderServiceImpl orderServiceImpl;
 
     @MockBean
     private UserServiceImpl userServiceImpl;
 
+    @Autowired
+    private MockMvc mockMvc;
 
     User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "ADMIN");
-
 
     @Test
     @WithMockUser(username = "testuser", authorities = "{CLIENT}")

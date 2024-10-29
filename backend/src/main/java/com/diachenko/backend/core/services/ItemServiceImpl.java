@@ -23,9 +23,10 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
+    private final CategoryServiceImpl categoryService;
 
     @Override
-    public List<ItemDto> allItems() {
+    public List<ItemDto> getAllItems() {
         return itemMapper.toItemDtos(itemRepository.findAll());
     }
 
@@ -37,7 +38,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto createItem(ItemDto itemDto) {
-        Item item = itemMapper.toItem(itemDto);
+        Item item = itemMapper.toItem(itemDto, categoryService);
 
         Item createdItem = itemRepository.save(item);
 
@@ -54,7 +55,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(Long id, ItemDto itemDto) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new AppException("item not found", HttpStatus.NOT_FOUND));
-        itemMapper.updateItem(item, itemMapper.toItem(itemDto));
+        itemMapper.updateItem(item, itemMapper.toItem(itemDto, categoryService));
 
         Item updatedItem = itemRepository.save(item);
 
@@ -63,6 +64,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item findItemById(Long itemId) {
-        return  itemRepository.findById(itemId).orElseThrow(() -> new AppException("item not found", HttpStatus.NOT_FOUND));
+        return itemRepository.findById(itemId).orElseThrow(() -> new AppException("item not found", HttpStatus.NOT_FOUND));
     }
 }

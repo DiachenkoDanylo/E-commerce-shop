@@ -31,7 +31,7 @@ public class ItemController {
 
     @GetMapping("/")
     public ResponseEntity<List<ItemDto>> allItems() {
-        return ResponseEntity.ok(itemServiceImpl.allItems());
+        return ResponseEntity.ok(itemServiceImpl.getAllItems());
     }
 
     @PostMapping("/")

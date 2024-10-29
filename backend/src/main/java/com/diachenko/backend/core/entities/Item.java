@@ -24,6 +24,10 @@ public class Item {
     @Column
     private String name;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = true)
+    private Category category;
+
     @Column
     private String description;
 

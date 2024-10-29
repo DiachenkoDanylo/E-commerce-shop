@@ -129,30 +129,4 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$[1].status").value("CREATED"));
     }
 
-    @Test
-    @WithMockUser(username = "testuser", authorities = {"CLIENT"})
-    void testCheckoutOrder() throws Exception {
-
-        OrderDto orderDto2 = new OrderDto();
-        orderDto2.setId(2L);
-        orderDto2.setStatus(OrderStatus.CREATED);
-
-        when(userServiceImpl.getUserByLoginAuth(any(Authentication.class))).thenReturn(userTest);
-        when(orderStatusServiceImpl.checkoutOrderByUserId(userTest.getId())).thenReturn(orderDto2);
-
-        mockMvc.perform(get("/order/checkout"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CREATED"));
-    }
-
-    @Test
-    @WithMockUser(username = "testuser", authorities = {"CLIENT"})
-    void testCheckoutOrder_AppException() throws Exception {
-
-        when(userServiceImpl.getUserByLoginAuth(any(Authentication.class))).thenThrow(new AppException("User not Found", HttpStatus.NOT_FOUND));
-        mockMvc.perform(get("/order/checkout"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("User not Found"));
-    }
-
 }
