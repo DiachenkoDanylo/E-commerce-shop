@@ -19,10 +19,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @RequiredArgsConstructor
 public class SecurityBeans {
 
-    private final UserAuthProvider userAuthProvider;
-
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_USER = "CLIENT";
+    private final UserAuthProvider userAuthProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, UserAuthProvider userAuthProvider) throws Exception {
@@ -31,6 +30,7 @@ public class SecurityBeans {
                 .sessionManagement(customize -> customize.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/items/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+                        .requestMatchers("/review/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
                         .requestMatchers("/bucket/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
                         .requestMatchers("/login", "/register").permitAll()
                         .anyRequest().authenticated());

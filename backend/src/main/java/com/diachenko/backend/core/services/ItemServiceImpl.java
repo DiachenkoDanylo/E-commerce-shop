@@ -60,4 +60,9 @@ public class ItemServiceImpl implements ItemService {
 
         return itemMapper.toItemDto(updatedItem);
     }
+
+    @Override
+    public Item findItemById(Long itemId) {
+        return  itemRepository.findById(itemId).orElseThrow(() -> new AppException("item not found", HttpStatus.NOT_FOUND));
+    }
 }

@@ -76,6 +76,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
-/frontend/
 /pgdata/
-/backend/.mvn/
+/frontend/
+/.mvn/
+

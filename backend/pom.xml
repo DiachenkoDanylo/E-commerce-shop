@@ -100,7 +100,13 @@
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-maven-plugin</artifactId>
 				<version>9.0.0</version> <!-- Убедитесь, что версия актуальна -->
+				<configuration>
+					<url>jdbc:postgresql://localhost:5433/ecommerceshop</url>
+					<user>postgres</user>
+					<password>diachenko</password>
+				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 
