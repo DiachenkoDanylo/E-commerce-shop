@@ -29,6 +29,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final ItemMapper itemMapper;
     private final OrderItemRepository orderItemRepository;
     private final OrderItemMapperImpl orderItemMapperImpl;
+    private final CategoryServiceImpl categoryService;
 
     @Override
     public OrderItem addToCurrentCartItem(Long userId, Long itemId, Integer quantity) {
@@ -36,7 +37,7 @@ public class OrderItemServiceImpl implements OrderItemService {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(orderMapper.toOrder(orderServiceImpl.getCartOrderDtoByUserId(userId)));
             inventoryServiceImpl.changeItemQuantity(itemId, quantity);
-            orderItem.setItem(itemMapper.toItem(itemServiceImpl.getItemDto(itemId)));
+            orderItem.setItem(itemMapper.toItem(itemServiceImpl.getItemDto(itemId),categoryService));
             orderItem.setQuantity(quantity);
             orderItem.setTotalPrice(itemServiceImpl.getItemDto(itemId).getBasePrice() * quantity);
             return orderItemRepository.save(orderItem);

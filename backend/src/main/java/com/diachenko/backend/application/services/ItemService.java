@@ -13,7 +13,7 @@ import java.util.List;
 public interface ItemService {
 
 
-    List<ItemDto> allItems();
+    List<ItemDto> getAllItems();
 
     ItemDto getItemDto(Long id);
 

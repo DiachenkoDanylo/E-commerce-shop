@@ -18,6 +18,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final ItemServiceImpl itemServiceImpl;
     private final ItemRepository itemRepository;
     private final ItemMapper itemMapper;
+    private final CategoryServiceImpl categoryService;
 
     @Override
     public boolean isAvailible(Long itemId, Integer quantity) {
@@ -28,6 +29,6 @@ public class InventoryServiceImpl implements InventoryService {
     public ItemDto changeItemQuantity(Long itemId, Integer quantity) {
         ItemDto item = itemServiceImpl.getItemDto(itemId);
         item.setQuantity(item.getQuantity() - quantity);
-        return itemMapper.toItemDto(itemRepository.save(itemMapper.toItem(item)));
+        return itemMapper.toItemDto(itemRepository.save(itemMapper.toItem(item, categoryService)));
     }
 }

@@ -20,8 +20,7 @@ import java.util.List;
 @RequestMapping("/order-item/")
 public class OrderItemController {
 
-    private final OrderServiceImpl orderServiceImpl;
-    private final UserServiceImpl userServiceImpl;
+
     private final OrderItemServiceImpl orderItemServiceImpl;
 
     @GetMapping("{id}")

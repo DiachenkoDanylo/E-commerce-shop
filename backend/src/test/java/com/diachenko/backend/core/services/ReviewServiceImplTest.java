@@ -43,14 +43,15 @@ class ReviewServiceImplTest {
     }
 
     public List<Item> mockItemList() {
-        Item item1 = new Item(1L, "testItem1", "testDesc1", 100, 10);
-        Item item2 = new Item(2L, "testItem2", "testDesc2", 200, 20);
+        Category category = new Category(1L, "testing category name", "testing category description");
+        Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, 10);
+        Item item2 = new Item(2L, "testItem2", category, "testDesc2", 200, 20);
         return List.of(item1, item2);
     }
 
     public List<ItemDto> mockItemDtoList() {
-        ItemDto item1 = new ItemDto(1L, "testItem1", "testDesc1", 100, 10);
-        ItemDto item2 = new ItemDto(2L, "testItem2", "testDesc2", 200, 20);
+        ItemDto item1 = new ItemDto(1L, "testItem1",1L, "testDesc1", 100, 10);
+        ItemDto item2 = new ItemDto(2L, "testItem2",1L, "testDesc2", 200, 20);
         return List.of(item1, item2);
     }
 

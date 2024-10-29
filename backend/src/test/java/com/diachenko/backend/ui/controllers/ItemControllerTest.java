@@ -41,16 +41,16 @@ class ItemControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    ItemDto itemDto1 = new ItemDto(1L, "testItem1", "testDesc1", 100, 10);
-    ItemDto itemDto2 = new ItemDto(2L, "testItem2", "testDesc2", 200, 20);
+    ItemDto itemDto1 = new ItemDto(1L, "testItem1",1L, "testDesc1", 100, 10);
+    ItemDto itemDto2 = new ItemDto(2L, "testItem2",1L, "testDesc2", 200, 20);
 
-    ItemDto itemDtoForCreation = new ItemDto(null, "testItem2", "testDesc2", 200, 20);
-    ItemDto createdItemDto = new ItemDto(2L, "testItem2", "testDesc2", 200, 20);
+    ItemDto itemDtoForCreation = new ItemDto(null, "testItem2",2L, "testDesc2", 200, 20);
+    ItemDto createdItemDto = new ItemDto(2L, "testItem2",2L, "testDesc2", 200, 20);
 
     @Test
     @WithMockUser(username = "testuser", authorities = "{CLIENT}")
     void testAllItems() throws Exception {
-        when(itemServiceImpl.allItems()).thenReturn(List.of(itemDto1, itemDto2));
+        when(itemServiceImpl.getAllItems()).thenReturn(List.of(itemDto1, itemDto2));
 
         mockMvc.perform(get("/items/"))
                 .andExpect(status().isOk())

@@ -4,19 +4,28 @@ package com.diachenko.backend.infrastructure.mappers;
     @author DiachenkoDanylo
 */
 
-import com.diachenko.backend.dtos.ItemDto;
+import com.diachenko.backend.core.entities.Category;
 import com.diachenko.backend.core.entities.Item;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
+import com.diachenko.backend.core.services.CategoryServiceImpl;
+import com.diachenko.backend.dtos.ItemDto;
+import org.mapstruct.*;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {Item.class})
 public interface ItemMapper {
 
-    Item toItem(ItemDto itemDto);
 
+    @Mapping(target = "category", source = "categoryId", qualifiedByName = "mapCategory")
+    Item toItem(ItemDto itemDto, @Context CategoryServiceImpl categoryService);
+
+    @Mapping(target = "categoryId", source = "category.id")
     ItemDto toItemDto(Item item);
+
+    @Named("mapCategory")
+    default Category mapCategory(Long categoryId, @Context CategoryServiceImpl categoryService) {
+        return categoryId != null ? categoryService.getCategoryById(categoryId) : null;
+    }
 
     List<ItemDto> toItemDtos(List<Item> itemList);
 

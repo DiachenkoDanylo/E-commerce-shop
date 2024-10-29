@@ -4,6 +4,7 @@ package com.diachenko.backend.core.services;
     @author DiachenkoDanylo
 */
 
+import com.diachenko.backend.core.entities.Category;
 import com.diachenko.backend.core.entities.Item;
 import com.diachenko.backend.dtos.ItemDto;
 import com.diachenko.backend.exceptions.AppException;
@@ -32,26 +33,30 @@ class ItemServiceImplTest {
     private ItemRepository itemRepository;
     @Mock
     private ItemMapper itemMapper;
+    @Mock
+    private CategoryServiceImpl categoryService;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
+
     public List<Item> mockItemList() {
-        Item item1 = new Item(1L, "testItem1", "testDesc1", 100, 10);
-        Item item2 = new Item(2L, "testItem2", "testDesc2", 200, 20);
+        Category category = new Category(1L, "testing category", "testing description");
+        Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, 10);
+        Item item2 = new Item(2L, "testItem2", category, "testDesc2", 200, 20);
         return List.of(item1, item2);
     }
 
     public List<ItemDto> mockItemDtoList() {
-        ItemDto item1 = new ItemDto(1L, "testItem1", "testDesc1", 100, 10);
-        ItemDto item2 = new ItemDto(2L, "testItem2", "testDesc2", 200, 20);
+        ItemDto item1 = new ItemDto(1L, "testItem1",1L, "testDesc1", 100, 10);
+        ItemDto item2 = new ItemDto(2L, "testItem2",1L, "testDesc2", 200, 20);
         return List.of(item1, item2);
     }
 
     @Test
-    void testAllItems() {
+    void testGetAllItems() {
         List<Item> itemsList = mockItemList();
         List<ItemDto> itemDtoList = mockItemDtoList();
 
@@ -59,7 +64,7 @@ class ItemServiceImplTest {
         when(itemRepository.findAll()).thenReturn(itemsList);
         when(itemMapper.toItemDtos(itemsList)).thenReturn(itemDtoList);
 
-        assertEquals(itemService.allItems(), itemDtoList);
+        assertEquals(itemService.getAllItems(), itemDtoList);
         verify(itemRepository, times(1)).findAll();
     }
 
@@ -96,7 +101,7 @@ class ItemServiceImplTest {
         List<Item> itemsList = mockItemList();
         List<ItemDto> itemDtoList = mockItemDtoList();
 
-        when(itemMapper.toItem(itemDtoList.get(0))).thenReturn(itemsList.get(0));
+        when(itemMapper.toItem(itemDtoList.get(0),categoryService)).thenReturn(itemsList.get(0));
         when(itemRepository.save(itemsList.get(0))).thenReturn(itemsList.get(0));
         when(itemMapper.toItemDto(itemsList.get(0))).thenReturn(itemDtoList.get(0));
 
