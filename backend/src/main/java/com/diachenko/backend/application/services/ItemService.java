@@ -1,6 +1,7 @@
 package com.diachenko.backend.application.services;
 
 import com.diachenko.backend.core.entities.Item;
+import com.diachenko.backend.core.entities.SearchCriteria;
 import com.diachenko.backend.dtos.ItemDto;
 
 import java.util.List;
@@ -24,4 +25,6 @@ public interface ItemService {
     ItemDto updateItem(Long id, ItemDto itemDto);
 
     Item findItemById(Long itemId);
+
+    List<ItemDto> searchItems(SearchCriteria criteria);
 }
