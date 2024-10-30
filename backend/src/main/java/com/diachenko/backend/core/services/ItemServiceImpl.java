@@ -2,11 +2,14 @@ package com.diachenko.backend.core.services;
 
 import com.diachenko.backend.application.services.ItemService;
 import com.diachenko.backend.core.entities.Item;
+import com.diachenko.backend.core.entities.ItemSpecifications;
 import com.diachenko.backend.dtos.ItemDto;
+import com.diachenko.backend.core.entities.SearchCriteria;
 import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.ItemMapper;
 import com.diachenko.backend.infrastructure.repositories.ItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -65,5 +68,15 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item findItemById(Long itemId) {
         return itemRepository.findById(itemId).orElseThrow(() -> new AppException("item not found", HttpStatus.NOT_FOUND));
+    }
+
+    @Override
+    public List<ItemDto> searchItems(SearchCriteria criteria) {
+        Specification<Item> spec = Specification.where(ItemSpecifications.hasKeyword(criteria.getKeyword()))
+                .and(ItemSpecifications.hasCategory(criteria.getCategoryId()))
+                .and(ItemSpecifications.hasPriceBetween(criteria.getMinPrice(), criteria.getMaxPrice()))
+                .and(ItemSpecifications.isInStock(criteria.getInStock()));
+
+        return itemMapper.toItemDtos(itemRepository.findAll(spec));
     }
 }
