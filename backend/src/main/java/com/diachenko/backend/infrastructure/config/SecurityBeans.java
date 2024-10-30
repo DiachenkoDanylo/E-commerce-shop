@@ -33,6 +33,7 @@ public class SecurityBeans {
                         .requestMatchers("/review/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
                         .requestMatchers("/bucket/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
                         .requestMatchers("/category/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+                        .requestMatchers("/wishlist/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
                         .requestMatchers("/login", "/register").permitAll()
                         .anyRequest().authenticated());
         return http.build();
