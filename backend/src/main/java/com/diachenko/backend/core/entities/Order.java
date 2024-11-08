@@ -4,6 +4,7 @@ package com.diachenko.backend.core.entities;
     @author DiachenkoDanylo
 */
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,7 @@ public class Order {
     private Long id;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "order")
+    @JsonManagedReference
     private List<OrderItem> items;
 
     @ManyToOne
@@ -39,12 +41,12 @@ public class Order {
     }
 
     public void addItem(OrderItem item) {
-        items.add(item);
+        this.items.add(item);
         item.setOrder(this);
     }
 
     public void removeItem(OrderItem item) {
-        items.remove(item);
+        this.items.remove(item);
         item.setOrder(null);
     }
 

@@ -8,6 +8,8 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -30,6 +32,9 @@ public class ItemDto {
 
     @NotNull
     private Integer basePrice;
+
+    @Nullable
+    private List<ImageDto> images;
 
     @NotNull
     private Integer quantity;
