@@ -4,20 +4,13 @@ package com.diachenko.backend.infrastructure.mappers;
     @author DiachenkoDanylo
 */
 
-import com.diachenko.backend.core.entities.Item;
-import com.diachenko.backend.core.entities.User;
 import com.diachenko.backend.core.entities.WishList;
-import com.diachenko.backend.core.services.CategoryServiceImpl;
-import com.diachenko.backend.core.services.WishListServiceImpl;
-import com.diachenko.backend.dtos.ItemDto;
 import com.diachenko.backend.dtos.WishListDto;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {WishListMapper.class})
+@Mapper(componentModel = "spring", uses = {WishList.class})
 public interface WishListMapper {
 
     WishListDto toWishListDto(WishList wishList);

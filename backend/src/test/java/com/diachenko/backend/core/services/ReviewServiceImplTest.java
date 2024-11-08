@@ -5,7 +5,6 @@ package com.diachenko.backend.core.services;
 */
 
 import com.diachenko.backend.core.entities.*;
-import com.diachenko.backend.dtos.ItemDto;
 import com.diachenko.backend.dtos.ReviewDto;
 import com.diachenko.backend.dtos.ReviewPayload;
 import com.diachenko.backend.exceptions.AppException;
@@ -44,21 +43,14 @@ class ReviewServiceImplTest {
 
     public List<Item> mockItemList() {
         Category category = new Category(1L, "testing category name", "testing category description");
-        Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, 10);
-        Item item2 = new Item(2L, "testItem2", category, "testDesc2", 200, 20);
-        return List.of(item1, item2);
-    }
-
-    public List<ItemDto> mockItemDtoList() {
-        ItemDto item1 = new ItemDto(1L, "testItem1",1L, "testDesc1", 100, 10);
-        ItemDto item2 = new ItemDto(2L, "testItem2",1L, "testDesc2", 200, 20);
+        Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, null, 10);
+        Item item2 = new Item(2L, "testItem2", category, "testDesc2", 200, null, 20);
         return List.of(item1, item2);
     }
 
     public Order mockOrder() {
         User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
-        Order orderTest = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
-        return orderTest;
+        return new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
     }
 
     @Test

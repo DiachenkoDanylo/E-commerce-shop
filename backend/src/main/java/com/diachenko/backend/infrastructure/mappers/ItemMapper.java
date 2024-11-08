@@ -12,9 +12,8 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {Item.class})
+@Mapper(componentModel = "spring", uses = {ImageMapper.class})
 public interface ItemMapper {
-
 
     @Mapping(target = "category", source = "categoryId", qualifiedByName = "mapCategory")
     Item toItem(ItemDto itemDto, @Context CategoryServiceImpl categoryService);

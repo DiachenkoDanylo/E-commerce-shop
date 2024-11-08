@@ -16,14 +16,12 @@ import com.diachenko.backend.core.services.OrderStatusServiceImpl;
 import com.diachenko.backend.core.services.UserServiceImpl;
 import com.diachenko.backend.dtos.OrderDto;
 import com.diachenko.backend.dtos.UserDto;
-import com.diachenko.backend.exceptions.AppException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -61,7 +59,6 @@ class OrderControllerTest {
 
     public Authentication auth() {
         return validateToken(createToken(user));
-
     }
 
     public Authentication validateToken(String token) {

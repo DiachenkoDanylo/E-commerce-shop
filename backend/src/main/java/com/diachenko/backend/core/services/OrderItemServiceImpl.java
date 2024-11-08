@@ -5,7 +5,7 @@ import com.diachenko.backend.core.entities.OrderItem;
 import com.diachenko.backend.dtos.OrderItemDto;
 import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.ItemMapper;
-import com.diachenko.backend.infrastructure.mappers.OrderItemMapperImpl;
+import com.diachenko.backend.infrastructure.mappers.OrderItemMapper;
 import com.diachenko.backend.infrastructure.mappers.OrderMapper;
 import com.diachenko.backend.infrastructure.repositories.OrderItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final OrderMapper orderMapper;
     private final ItemMapper itemMapper;
     private final OrderItemRepository orderItemRepository;
-    private final OrderItemMapperImpl orderItemMapperImpl;
+    private final OrderItemMapper orderItemMapper;
     private final CategoryServiceImpl categoryService;
 
     @Override
@@ -48,16 +48,16 @@ public class OrderItemServiceImpl implements OrderItemService {
 
     @Override
     public List<OrderItemDto> getOrderItemList(Long id) {
-        return orderItemMapperImpl.toOrderItemDtoList(orderItemRepository.findOrderItemsByOrderId(id));
+        return orderItemMapper.toOrderItemDtoList(orderItemRepository.findOrderItemsByOrderId(id));
     }
 
     @Override
     public List<OrderItemDto> update(Long id, List<OrderItemDto> orderItemDtos) {
         List<OrderItem> orderItems = orderItemRepository.findOrderItemsByOrderId(id);
-        orderItemMapperImpl.updateOrderItemList(orderItems, orderItemMapperImpl.toOrderItemList(orderItemDtos));
+        orderItemMapper.updateOrderItemList(orderItems, orderItemMapper.toOrderItemList(orderItemDtos));
         orderItems.stream().forEach(s -> s.setOrder(orderItemRepository.findOrderItemsByOrderId(id).get(0).getOrder()));
         List<OrderItem> saved = orderItemRepository.saveAll(orderItems);
         saved.stream().forEach(s -> s.setTotalPrice(s.getItem().getBasePrice() * s.getQuantity()));
-        return orderItemMapperImpl.toOrderItemDtoList(saved);
+        return orderItemMapper.toOrderItemDtoList(saved);
     }
 }

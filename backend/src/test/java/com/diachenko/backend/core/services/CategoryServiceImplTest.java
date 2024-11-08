@@ -128,7 +128,6 @@ class CategoryServiceImplTest {
     @Test
     void testDeleteCategory_AppException() {
         Category category = new Category(1L, "testing category name", "testing category desc");
-        CategoryDto categoryDto = new CategoryDto(1L, "testing category name", "testing category desc");
 
         when(repository.findById(category.getId())).thenReturn(Optional.empty());
 
@@ -141,15 +140,35 @@ class CategoryServiceImplTest {
         verify(repository, times(1)).findById(anyLong());
     }
 
-//    @Override
-//    public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
-//        Category category = categoryRepository.findById(id).orElseThrow(() -> new AppException("category not found", HttpStatus.NOT_FOUND));
-//        categoryMapper.updateCategory(category, categoryMapper.toCategory(categoryDto));
-//
-//        Category updatedCategory = categoryRepository.save(category);
-//
-//        return categoryMapper.toCategoryDto(updatedCategory);
-//    }
+    @Test
+    void testUpdateCategory() {
+        Category category = new Category(2L, "testing category name", "testing category desc");
 
+        Category updateTo = new Category(null, "testing category name2", "testing category desc2");
+        CategoryDto updateToDto = new CategoryDto(null, "testing category name", "testing category desc");
 
+        Category updateToSaved = new Category(2L, "testing category name2", "testing category desc2");
+        CategoryDto updateToDtoSaved = new CategoryDto(2L, "testing category name2", "testing category desc2");
+
+        when(repository.findById(2L)).thenReturn(Optional.of(category));
+        when(categoryMapper.toCategory(any())).thenReturn(updateTo);
+        when(repository.save(updateTo)).thenReturn(updateToSaved);
+        when(categoryMapper.toCategoryDto(any())).thenReturn(updateToDtoSaved);
+
+        assertEquals(categoryService.updateCategory(2L, updateToDto), updateToDtoSaved);
+    }
+
+    @Test
+    void testUpdateCategory_AppException() {
+        CategoryDto updateToDto = new CategoryDto(null, "testing category name", "testing category desc");
+
+        when(repository.findById(2L)).thenThrow(new AppException("category not found", HttpStatus.NOT_FOUND));
+
+        AppException thrown = assertThrows(AppException.class, () -> {
+            categoryService.updateCategory(2L, updateToDto);
+        });
+
+        assertEquals("category not found", thrown.getMessage());
+        assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
+    }
 }

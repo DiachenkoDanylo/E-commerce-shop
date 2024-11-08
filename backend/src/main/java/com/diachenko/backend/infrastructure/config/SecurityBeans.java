@@ -21,6 +21,15 @@ public class SecurityBeans {
 
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_USER = "CLIENT";
+
+    private static final String[] AUTHORIZED_ROUTES = {
+            "/items/**", "/review/**", "/bucket/**", "/category/**", "/wishlist/**", "/images/**"
+    };
+
+    private static final String[] PUBLIC_ROUTES = {
+            "/login", "/register"
+    };
+
     private final UserAuthProvider userAuthProvider;
 
     @Bean
@@ -28,13 +37,9 @@ public class SecurityBeans {
         http.csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
                 .sessionManagement(customize -> customize.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/items/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
-                        .requestMatchers("/review/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
-                        .requestMatchers("/bucket/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
-                        .requestMatchers("/category/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
-                        .requestMatchers("/wishlist/**").hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
-                        .requestMatchers("/login", "/register").permitAll()
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(AUTHORIZED_ROUTES).hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+                        .requestMatchers(PUBLIC_ROUTES).permitAll()
                         .anyRequest().authenticated());
         return http.build();
     }
