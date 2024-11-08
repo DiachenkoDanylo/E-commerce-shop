@@ -301,22 +301,22 @@ class OrderServiceImplTest {
         assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
     }
 
-//    @Test
-//    void testUpdateOrder() {
-//        User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
-//        UserDto user = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
-//
-//        Order orderTest = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
-//        Order orderUpdated = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CREATED);
-//        OrderDto orderDtoForUpdate = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CREATED, 0);
-//        OrderDto orderDtoUpdated = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CREATED, 0);
-//
-//        when(orderRepository.findById(1L)).thenReturn(Optional.of(orderTest));
-//        when(orderMapper.toOrder(orderDtoForUpdate)).thenReturn(orderUpdated);
-//        when(orderRepository.save(orderUpdated)).thenReturn(orderUpdated);
-//        when(orderMapper.toOrderDto(orderUpdated)).thenReturn(orderDtoUpdated);
-//
-//        assertEquals(orderService.updateOrder(1L, orderDtoForUpdate), orderDtoUpdated);
-//        verify(orderRepository, times(1)).save(orderUpdated);
-//    }
+    @Test
+    void testUpdateOrder() {
+        User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
+        UserDto user = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
+
+        Order orderTest = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
+        Order orderUpdated = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CREATED);
+        OrderDto orderDtoForUpdate = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CREATED, 0);
+        OrderDto orderDtoUpdated = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CREATED, 0);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(orderTest));
+        when(orderMapper.toOrder(orderDtoForUpdate)).thenReturn(orderUpdated);
+        when(orderRepository.save(orderUpdated)).thenReturn(orderUpdated);
+        when(orderMapper.toOrderDto(any())).thenReturn(orderDtoUpdated);
+
+        assertEquals(orderService.updateOrder(1L, orderDtoForUpdate), orderDtoUpdated);
+        verify(orderRepository, times(1)).save(any());
+    }
 }

@@ -5,8 +5,6 @@ package com.diachenko.backend.ui.controllers;
 */
 
 import com.diachenko.backend.core.services.OrderItemServiceImpl;
-import com.diachenko.backend.core.services.OrderServiceImpl;
-import com.diachenko.backend.core.services.UserServiceImpl;
 import com.diachenko.backend.dtos.OrderItemDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/order-item/")
 public class OrderItemController {
-
 
     private final OrderItemServiceImpl orderItemServiceImpl;
 

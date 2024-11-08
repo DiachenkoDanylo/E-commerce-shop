@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,14 +45,14 @@ class ItemServiceImplTest {
 
     public List<Item> mockItemList() {
         Category category = new Category(1L, "testing category", "testing description");
-        Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, 10);
-        Item item2 = new Item(2L, "testItem2", category, "testDesc2", 200, 20);
+        Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, null, 10);
+        Item item2 = new Item(2L, "testItem2", category, "testDesc2", 200, null, 20);
         return List.of(item1, item2);
     }
 
     public List<ItemDto> mockItemDtoList() {
-        ItemDto item1 = new ItemDto(1L, "testItem1",1L, "testDesc1", 100, 10);
-        ItemDto item2 = new ItemDto(2L, "testItem2",1L, "testDesc2", 200, 20);
+        ItemDto item1 = new ItemDto(1L, "testItem1", 1L, "testDesc1", 100, Collections.emptyList(), 10);
+        ItemDto item2 = new ItemDto(2L, "testItem2", 1L, "testDesc2", 200,Collections.emptyList(), 20);
         return List.of(item1, item2);
     }
 
@@ -101,7 +102,7 @@ class ItemServiceImplTest {
         List<Item> itemsList = mockItemList();
         List<ItemDto> itemDtoList = mockItemDtoList();
 
-        when(itemMapper.toItem(itemDtoList.get(0),categoryService)).thenReturn(itemsList.get(0));
+        when(itemMapper.toItem(itemDtoList.get(0), categoryService)).thenReturn(itemsList.get(0));
         when(itemRepository.save(itemsList.get(0))).thenReturn(itemsList.get(0));
         when(itemMapper.toItemDto(itemsList.get(0))).thenReturn(itemDtoList.get(0));
 
