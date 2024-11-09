@@ -27,8 +27,14 @@ public class SecurityBeans {
     };
 
     private static final String[] PUBLIC_ROUTES = {
-            "/login", "/register"
+            "/login", "/register",
     };
+
+    private static final String[] SWAGGER_WHITELIST = {
+            "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-resources",
+    };
+
+
 
     private final UserAuthProvider userAuthProvider;
 
@@ -38,8 +44,9 @@ public class SecurityBeans {
                 .addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
                 .sessionManagement(customize -> customize.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(AUTHORIZED_ROUTES).hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers(PUBLIC_ROUTES).permitAll()
+                        .requestMatchers(AUTHORIZED_ROUTES).hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
                         .anyRequest().authenticated());
         return http.build();
     }
