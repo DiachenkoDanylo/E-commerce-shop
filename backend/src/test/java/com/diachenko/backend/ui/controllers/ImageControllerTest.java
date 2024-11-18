@@ -33,6 +33,8 @@ class ImageControllerTest {
     @MockBean
     private ImageServiceImpl imageService;
 
+    private static final String BASE_URI = "/images/";
+
     List<Image> testSetUp() {
         Category category = new Category(1L, "testing category", "testing description");
         Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, null, 10);
@@ -47,7 +49,7 @@ class ImageControllerTest {
         List<Image> images = testSetUp();
         when(imageService.getListImageFromItem(1L)).thenReturn(images);
 
-        mockMvc.perform(get("/images/{itemDd}", 1L))
+        mockMvc.perform(get(BASE_URI + "{itemDd}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].imageUrl").value("images/items/1/1.jpeg"));
@@ -65,7 +67,7 @@ class ImageControllerTest {
         );
 
         when(imageService.saveImageToItem(1L, file.getBytes())).thenReturn("images/items/1/1.jpeg");
-        mockMvc.perform(multipart("/images/{itemId}", 1L)
+        mockMvc.perform(multipart(BASE_URI + "{itemId}", 1L)
                         .file(file)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .with(csrf()))
@@ -78,7 +80,7 @@ class ImageControllerTest {
     void testDeleteImageById_All() throws Exception {
         when(imageService.deleteAllImagesFromItemById(1L)).thenReturn("All images deleted for item 1");
 
-        mockMvc.perform(delete("/images/{itemId}", 1L)
+        mockMvc.perform(delete(BASE_URI + "{itemId}", 1L)
                         .param("all", "true")
                         .with(csrf()))
                 .andExpect(status().isOk())
@@ -91,7 +93,7 @@ class ImageControllerTest {
 
         when(imageService.deleteImageById(1L)).thenReturn(testSetUp().get(0));
 
-        mockMvc.perform(delete("/images/{itemId}", 1L)
+        mockMvc.perform(delete(BASE_URI + "{itemId}", 1L)
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect((jsonPath("$.id").value(1L)));

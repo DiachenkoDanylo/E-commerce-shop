@@ -6,14 +6,13 @@ package com.diachenko.backend.application.services;
 
 import com.diachenko.backend.core.entities.WishList;
 import com.diachenko.backend.dtos.WishListDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface WishListService {
 
-    List<WishList> getWishListListByUserId(Long userId);
+    Page<WishList> getWishListListByUserId(Long userId, int page, int size);
 
-    List<WishListDto> getWishListDtoListByUserId(Long userId);
+    Page<WishListDto> getWishListDtoListByUserId(Long userId, int page, int size);
 
     WishListDto addItemToWishList(Long userId, Long itemId);
 

@@ -18,6 +18,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,12 +45,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ItemController.class)
 class ItemControllerTest {
 
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
+    private static final String BASE_URI = "/items/";
+
     private final UserDto userDto = new UserDto(1L, "testname", "testlname", "testlog", "testpass", "testmail", "ADMIN");
     private final User user = new User(1L, "testname", "testlname", "testlog", "testpass", "testmail", "ADMIN");
     ItemDto itemDto1 = new ItemDto(1L, "testItem1", 1L, "testDesc1", 100, Collections.emptyList(), 10);
     ItemDto itemDto2 = new ItemDto(2L, "testItem2", 1L, "testDesc2", 200, Collections.emptyList(), 20);
     ItemDto itemDtoForCreation = new ItemDto(null, "testItem2", 2L, "testDesc2", 200, Collections.emptyList(), 20);
     ItemDto createdItemDto = new ItemDto(2L, "testItem2", 2L, "testDesc2", 200, Collections.emptyList(), 20);
+
 
     @MockBean
     private ItemServiceImpl itemService;
@@ -68,14 +78,15 @@ class ItemControllerTest {
     @Test
     @WithMockUser(username = "testuser", authorities = "{CLIENT}")
     void testAllItems() throws Exception {
-        when(itemService.getAllItems()).thenReturn(List.of(itemDto1, itemDto2));
+        Page<ItemDto> result = new PageImpl<>(List.of(itemDto1, itemDto2), PAGEABLE, 2);
+        when(itemService.getAllItems(PAGE, SIZE)).thenReturn(result);
 
-        mockMvc.perform(get("/items/"))
+        mockMvc.perform(get(BASE_URI))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].quantity").value(10))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].quantity").value(20));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].quantity").value(10))
+                .andExpect(jsonPath("$.content[1].id").value(2L))
+                .andExpect(jsonPath("$.content[1].quantity").value(20));
     }
 
     @Test
@@ -84,7 +95,7 @@ class ItemControllerTest {
 
         when(itemService.createItem(any(ItemDto.class))).thenReturn(createdItemDto);
 
-        mockMvc.perform(post("/items/")
+        mockMvc.perform(post(BASE_URI)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(itemDtoForCreation))
                         .with(csrf()))      // mockMVC is  always setting up the csrf, need to manually disable
@@ -101,7 +112,7 @@ class ItemControllerTest {
         Long itemId = 1L;
         when(itemService.getItemDto(itemId)).thenReturn(itemDto1);
 
-        mockMvc.perform(get("/items/{id}", itemId))
+        mockMvc.perform(get(BASE_URI+"{id}", itemId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.description").value("testDesc1"));
@@ -113,7 +124,7 @@ class ItemControllerTest {
         Long itemId = 1L;
         when(itemService.deleteItem(itemId)).thenReturn(itemDto1);
 
-        mockMvc.perform(delete("/items/{id}", itemId).with(csrf()))
+        mockMvc.perform(delete(BASE_URI+"{id}", itemId).with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.description").value("testDesc1"));
@@ -125,7 +136,7 @@ class ItemControllerTest {
         Long itemId = 1L;
         when(itemService.updateItem(itemId, itemDto2)).thenReturn(itemDto1);
 
-        mockMvc.perform(put("/items/{id}", itemId).with(csrf())
+        mockMvc.perform(put(BASE_URI+"{id}", itemId).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(itemDto2)))
                 .andExpect(status().isOk())
@@ -177,7 +188,7 @@ class ItemControllerTest {
         when(userService.getUserByLoginAuth(any(Authentication.class))).thenReturn(mockUser);
         when(orderItemService.addToCurrentCartItem(1L, itemId, 1)).thenReturn(mockOrderItem);
 
-        mockMvc.perform(get("/items/{id}/add", itemId)
+        mockMvc.perform(get(BASE_URI+"{id}/add", itemId)
                         .param("quantity", String.valueOf(1))
                         .principal(auth)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -192,9 +203,16 @@ class ItemControllerTest {
     @WithMockUser(username = "testuser", authorities = "{USER}")
     void testSearchItems() throws Exception {
         List<ItemDto> mockItems = List.of(itemDto1, itemDto2);
-        when(itemService.searchItems(any(SearchCriteria.class))).thenReturn(mockItems);
+        Page<ItemDto> result = new PageImpl<>(mockItems, PAGEABLE, 2);
+        SearchCriteria searchCriteria = new SearchCriteria(("laptop"),
+                (Long.parseLong("1")),
+                (Double.parseDouble("1000")),
+                (Double.parseDouble("2000")),
+                (Boolean.valueOf("true")));
 
-        mockMvc.perform(get("/items/search")
+        when(itemService.searchItems(searchCriteria, PAGE, SIZE)).thenReturn(result);
+
+        mockMvc.perform(get(BASE_URI+"search")
                         .param("keyword", "laptop")
                         .param("categoryId", "1")
                         .param("minPrice", "1000")
@@ -202,9 +220,9 @@ class ItemControllerTest {
                         .param("inStock", "true")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(mockItems.get(0).getId()))
-                .andExpect(jsonPath("$[0].name").value("testItem1"));
+                .andExpect(jsonPath("$.content[0].id").value(mockItems.get(0).getId()))
+                .andExpect(jsonPath("$.content[0].name").value("testItem1"));
 
-        verify(itemService, times(1)).searchItems(any(SearchCriteria.class));
+        verify(itemService, times(1)).searchItems(searchCriteria, PAGE, SIZE);
     }
 }

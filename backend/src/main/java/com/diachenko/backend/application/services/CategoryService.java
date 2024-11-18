@@ -6,8 +6,7 @@ package com.diachenko.backend.application.services;
 
 import com.diachenko.backend.core.entities.Category;
 import com.diachenko.backend.dtos.CategoryDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface CategoryService {
 
@@ -15,7 +14,7 @@ public interface CategoryService {
 
     CategoryDto getCategoryDtoById(Long id);
 
-    List<CategoryDto> getAllCategoriesList();
+    Page<CategoryDto> getAllCategoriesList(int page, int size);
 
     CategoryDto addCategory(CategoryDto categoryDto);
 

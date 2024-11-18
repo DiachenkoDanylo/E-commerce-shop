@@ -7,14 +7,13 @@ package com.diachenko.backend.application.services;
 import com.diachenko.backend.core.entities.Review;
 import com.diachenko.backend.dtos.ReviewDto;
 import com.diachenko.backend.dtos.ReviewPayload;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface ReviewService {
 
     ReviewDto getReviewById(Long id);
 
-    List<ReviewDto> getReviewListByItemId(Long id);
+    Page<ReviewDto> getReviewListByItemId(Long id, int page, int size);
 
     ReviewDto addReview(ReviewPayload payload);
 
@@ -22,9 +21,9 @@ public interface ReviewService {
 
     ReviewDto deleteReview(Long id);
 
-    public List<ReviewDto> getAllReviews();
+    Page<ReviewDto> getAllReviews(int page, int size);
 
-    boolean checkReview(ReviewPayload payload);
+    boolean isReviewAvailible(ReviewPayload payload);
 
     Review convertToReview(ReviewDto reviewDto);
 

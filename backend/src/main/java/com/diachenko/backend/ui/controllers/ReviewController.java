@@ -9,12 +9,12 @@ import com.diachenko.backend.dtos.ReviewDto;
 import com.diachenko.backend.dtos.ReviewPayload;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,16 +24,17 @@ public class ReviewController {
     private final ReviewServiceImpl reviewService;
 
     @GetMapping("")
-    public ResponseEntity<List<ReviewDto>> getReviewById() {
-        return ResponseEntity.ok(reviewService.getAllReviews());
+    public ResponseEntity<Page<ReviewDto>> getReviewById(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                         @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(reviewService.getAllReviews(page, size));
     }
 
     @PostMapping()
     public ResponseEntity<ReviewDto> createReview(@RequestBody @Valid ReviewPayload payload) {
-        if (reviewService.checkReview(payload)){
+        if (reviewService.isReviewAvailible(payload)) {
             ReviewDto createdReviewDto = reviewService.addReview(payload);
             return ResponseEntity.created(URI.create("/review/" + createdReviewDto.getId())).body(createdReviewDto);
-        }else return null;
+        } else return null;
     }
 
     @GetMapping("{id}")
@@ -54,7 +55,9 @@ public class ReviewController {
     }
 
     @GetMapping("item/{id}")
-    public ResponseEntity<List<ReviewDto>> getReviewByItemId(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(reviewService.getReviewListByItemId(id));
+    public ResponseEntity<Page<ReviewDto>> getReviewByItemId(@PathVariable("id") Long id,
+                                                             @RequestParam(name = "page", defaultValue = "0") int page,
+                                                             @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(reviewService.getReviewListByItemId(id, page, size));
     }
 }

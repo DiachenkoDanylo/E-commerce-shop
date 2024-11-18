@@ -13,28 +13,26 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
 @RestController
+@RequestMapping("/auth/")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final UserAuthServiceImpl userAuthServiceImpl;
     private final UserAuthProvider userAuthProvider;
 
-    @PostMapping("/login")
+    @PostMapping("login")
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
         UserDto user = userAuthServiceImpl.login(credentialsDto);
         user.setToken(userAuthProvider.createToken(user));
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/register")
+    @PostMapping("register")
     public ResponseEntity<UserDto> register(@RequestBody SignUpDto signUpDto,
                                             @RequestParam( name = "admin")
                                             @Nullable

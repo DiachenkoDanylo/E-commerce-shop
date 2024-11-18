@@ -16,16 +16,25 @@ import com.diachenko.backend.core.services.OrderStatusServiceImpl;
 import com.diachenko.backend.core.services.UserServiceImpl;
 import com.diachenko.backend.dtos.OrderDto;
 import com.diachenko.backend.dtos.UserDto;
+import com.diachenko.backend.exceptions.AppException;
+import jakarta.validation.Valid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
@@ -51,6 +60,11 @@ class OrderControllerTest {
     private UserServiceImpl userServiceImpl;
     @MockBean
     private OrderStatusServiceImpl orderStatusServiceImpl;
+
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
+    private static final String BASE_URI = "/order/";
 
     @BeforeEach
     void setUp() {
@@ -98,7 +112,7 @@ class OrderControllerTest {
         when(userServiceImpl.getUserByLoginAuth(any(Authentication.class))).thenReturn(userTest);
         when(orderService.getCartOrderDtoByUserId(userTest.getId())).thenReturn(orderDto);
 
-        mockMvc.perform(get("/order"))
+        mockMvc.perform(get(BASE_URI))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.status").value("CART"));
@@ -116,14 +130,42 @@ class OrderControllerTest {
         orderDto2.setStatus(OrderStatus.CREATED);
 
         when(userServiceImpl.getUserByLoginAuth(any(Authentication.class))).thenReturn(userTest);
-        when(orderService.getAllOrdersDtoByUserId(userTest.getId())).thenReturn(List.of(orderDto, orderDto2));
+        when(orderService.getAllOrdersDtoByUserId(userTest.getId(), PAGE, SIZE)).thenReturn(new PageImpl<>(List.of(orderDto, orderDto2), PAGEABLE, 2));
 
-        mockMvc.perform(get("/order/all"))
+        mockMvc.perform(get(BASE_URI+"all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].status").value("CART"))
-                .andExpect(jsonPath("$[1].id").value(2L))
-                .andExpect(jsonPath("$[1].status").value("CREATED"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].status").value("CART"))
+                .andExpect(jsonPath("$.content[1].id").value(2L))
+                .andExpect(jsonPath("$.content[1].status").value("CREATED"));
     }
+//
+//    @GetMapping
+//    public ResponseEntity<OrderDto> getCurrentOrder(Authentication auth) {
+//        User user = userServiceImpl.getUserByLoginAuth(auth);
+//        return ResponseEntity.ok(orderServiceImpl.getCartOrderDtoByUserId(user.getId()));
+//    }
+//
+//    @GetMapping("all")
+//    public ResponseEntity<Page<OrderDto>> getAllOrders(Authentication auth,
+//                                                       @RequestParam(name = "page", defaultValue = "0") int page,
+//                                                       @RequestParam(name = "size", defaultValue = "10") int size) {
+//        User user = userServiceImpl.getUserByLoginAuth(auth);
+//        return ResponseEntity.ok(orderServiceImpl.getAllOrdersDtoByUserId(user.getId(),page,size));
+//    }
+//
+//    @GetMapping("{id}")
+//    public ResponseEntity<OrderDto> getOrderClient(Authentication auth, @PathVariable("id") Long id) {
+//        if (orderServiceImpl.getOrderDtoById(id).getUser().getLogin().equals(userServiceImpl.getUserByLoginAuth(auth).getLogin()) || auth.getPrincipal().toString().contains("ADMIN")) {
+//            return ResponseEntity.ok(orderServiceImpl.getOrderDtoById(id));
+//        } else {
+//            throw new AppException("You cannot get others client orders", HttpStatus.BAD_REQUEST);
+//        }
+//    }
+//
+//    @PutMapping("{id}")
+//    public ResponseEntity<OrderDto> updateOrder(@PathVariable("id") Long id, @Valid @RequestBody OrderDto orderDto) {
+//        return ResponseEntity.ok(orderServiceImpl.updateOrder(id, orderDto));
+//    }
 
 }

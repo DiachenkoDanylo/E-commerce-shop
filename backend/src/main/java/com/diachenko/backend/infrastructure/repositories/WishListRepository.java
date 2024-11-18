@@ -5,6 +5,8 @@ package com.diachenko.backend.infrastructure.repositories;
 */
 
 import com.diachenko.backend.core.entities.WishList;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,7 +15,7 @@ import java.util.Optional;
 
 @Repository
 public interface WishListRepository extends JpaRepository<WishList, Long> {
-    List<WishList> findAllByUserId(Long userId);
+    Page<WishList> findAllByUserId(Long userId, Pageable pageable);
 
     Optional<WishList> findByUserIdAndItemId(Long userId, Long itemId);
 

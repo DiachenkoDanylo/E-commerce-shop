@@ -6,16 +6,17 @@ package com.diachenko.backend.core.services;
 
 import com.diachenko.backend.application.services.CategoryService;
 import com.diachenko.backend.core.entities.Category;
-import com.diachenko.backend.core.entities.Item;
 import com.diachenko.backend.dtos.CategoryDto;
 import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.CategoryMapper;
 import com.diachenko.backend.infrastructure.repositories.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,12 +37,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDto> getAllCategoriesList() {
-        List<Category> categories = categoryRepository.findAll();
-        if (!categories.isEmpty()){
-            return  categoryMapper.toCategoryDtos(categories);
-        }else {
-            throw new AppException("There is no category yet",HttpStatus.NOT_FOUND);
+    public Page<CategoryDto> getAllCategoriesList(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Category> categories = categoryRepository.findAll(pageable);
+        if (!categories.isEmpty()) {
+            return new PageImpl<>(categoryMapper.toCategoryDtos(categories.getContent()), pageable, categories.getTotalPages());
+        } else {
+            throw new AppException("There is no category yet", HttpStatus.NOT_FOUND);
         }
     }
 

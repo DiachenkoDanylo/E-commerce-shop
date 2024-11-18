@@ -1,21 +1,21 @@
 package com.diachenko.backend.ui.controllers;
 
-import com.diachenko.backend.dtos.ItemDto;
 import com.diachenko.backend.core.entities.OrderItem;
+import com.diachenko.backend.core.entities.SearchCriteria;
 import com.diachenko.backend.core.entities.User;
 import com.diachenko.backend.core.services.ItemServiceImpl;
 import com.diachenko.backend.core.services.OrderItemServiceImpl;
 import com.diachenko.backend.core.services.UserServiceImpl;
-import com.diachenko.backend.core.entities.SearchCriteria;
+import com.diachenko.backend.dtos.ItemDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 /*  E-commerce shop
     25.09.2024
@@ -31,8 +31,11 @@ public class ItemController {
     private final OrderItemServiceImpl orderItemService;
 
     @GetMapping("/")
-    public ResponseEntity<List<ItemDto>> allItems() {
-        return ResponseEntity.ok(itemService.getAllItems());
+    public ResponseEntity<Page<ItemDto>> allItems(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(itemService.getAllItems(page, size));
     }
 
     @PostMapping("/")
@@ -68,13 +71,16 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ItemDto>> searchItems(
+    public ResponseEntity<Page<ItemDto>> searchItems(
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "categoryId", required = false) Long categoryId,
             @RequestParam(name = "minPrice", required = false) Double minPrice,
             @RequestParam(name = "maxPrice", required = false) Double maxPrice,
-            @RequestParam(name = "inStock", required = false) Boolean inStock) {
-        List<ItemDto> items = itemService.searchItems(new SearchCriteria(keyword, categoryId, minPrice, maxPrice, inStock));
-        return ResponseEntity.ok(items);
+            @RequestParam(name = "inStock", required = false) Boolean inStock,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+
+        return ResponseEntity.ok(itemService
+                .searchItems(new SearchCriteria(keyword, categoryId, minPrice, maxPrice, inStock), page, size));
     }
 }
