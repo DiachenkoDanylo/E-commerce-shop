@@ -27,7 +27,7 @@ public class SecurityBeans {
     };
 
     private static final String[] PUBLIC_ROUTES = {
-            "/login", "/register",
+            "/auth/login", "/auth/register",
     };
 
     private static final String[] SWAGGER_WHITELIST = {

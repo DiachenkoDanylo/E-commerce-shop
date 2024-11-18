@@ -7,18 +7,16 @@ package com.diachenko.backend.application.services;
 import com.diachenko.backend.core.entities.Order;
 import com.diachenko.backend.core.entities.OrderStatus;
 import com.diachenko.backend.dtos.OrderDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 
 public interface OrderService {
 
+    Page<OrderDto> getAllOrders(int page, int size);
 
-    List<OrderDto> getAllOrders();
+    Page<OrderDto> getAllOrdersDtoByUserId(Long userId, int page, int size);
 
-    List<OrderDto> getAllOrdersWithStatus(OrderStatus orderStatus);
-
-    List<OrderDto> getAllOrdersDtoByUserId(Long userId);
+    Page<OrderDto> getAllOrdersWithStatus(OrderStatus orderStatus, int page, int size);
 
     Order createEmptyCart(Long userId);
 

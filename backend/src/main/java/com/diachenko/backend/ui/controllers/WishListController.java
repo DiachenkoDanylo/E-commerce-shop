@@ -9,11 +9,10 @@ import com.diachenko.backend.core.services.UserServiceImpl;
 import com.diachenko.backend.core.services.WishListServiceImpl;
 import com.diachenko.backend.dtos.WishListDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/wishlist/")
@@ -24,9 +23,11 @@ public class WishListController {
     private final WishListServiceImpl wishListService;
 
     @GetMapping("")
-    public ResponseEntity<List<WishListDto>> getWishListListByUser(Authentication auth) {
+    public ResponseEntity<Page<WishListDto>> getWishListListByUser(Authentication auth,
+                                                                   @RequestParam(name = "page", defaultValue = "0") int page,
+                                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
         User user = userService.getUserByLoginAuth(auth);// extract user ID from JWT
-        return ResponseEntity.ok(wishListService.getWishListDtoListByUserId(user.getId()));
+        return ResponseEntity.ok(wishListService.getWishListDtoListByUserId(user.getId(), page, size));
     }
 
     @PostMapping("{itemId}")

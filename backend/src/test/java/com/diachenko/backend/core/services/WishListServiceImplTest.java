@@ -14,10 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +28,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class WishListServiceImplTest {
+
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
 
     Long userId = 1L;
     Long itemId = 2L;
@@ -46,33 +53,36 @@ class WishListServiceImplTest {
 
     @Test
     void testGetWishListListByUserId() {
-        when(repository.findAllByUserId(wishList.getUserId())).thenReturn(List.of(wishList, wishList2));
+        Page<WishList> page = new PageImpl<>(List.of(wishList, wishList2), PAGEABLE, 2);
+        when(repository.findAllByUserId(wishList.getUserId(), PAGEABLE)).thenReturn(page);
 
-        assertEquals(wishListService.getWishListListByUserId(userId), List.of(wishList, wishList2));
-        verify(repository, times(1)).findAllByUserId(any());
+        assertEquals(wishListService.getWishListListByUserId(userId, PAGE, SIZE), page);
+        verify(repository, times(1)).findAllByUserId(wishList.getUserId(), PAGEABLE);
     }
 
     @Test
     void testGetWishListDtoListByUserId() {
-        when(repository.findAllByUserId(wishList.getUserId())).thenReturn(List.of(wishList, wishList2));
+        Page<WishList> page = new PageImpl<>(List.of(wishList, wishList2), PAGEABLE, 2);
+        Page<WishListDto> pageDto = new PageImpl<>(List.of(wishListDto, wishListDto2), PAGEABLE, 2);
+        when(repository.findAllByUserId(wishList.getUserId(), PAGEABLE)).thenReturn(page);
         when(mapper.toWishListDtoList(List.of(wishList, wishList2))).thenReturn(List.of(wishListDto, wishListDto2));
 
-        assertEquals(wishListService.getWishListDtoListByUserId(userId), List.of(wishListDto, wishListDto2));
-        verify(repository, times(1)).findAllByUserId(any());
-        verify(mapper, times(1)).toWishListDtoList(any());
+        assertEquals(wishListService.getWishListDtoListByUserId(userId, PAGE, SIZE), pageDto);
+        verify(repository, times(1)).findAllByUserId(wishList.getUserId(), PAGEABLE);
+        verify(mapper, times(1)).toWishListDtoList(List.of(wishList, wishList2));
     }
 
     @Test
     void testGetWishListDtoListByUserId_AppException() {
-        when(repository.findAllByUserId(wishList.getUserId())).thenReturn(Collections.emptyList());
+        when(repository.findAllByUserId(wishList.getUserId(), PAGEABLE)).thenReturn(Page.empty());
 
         AppException thrown = assertThrows(AppException.class, () -> {
-            wishListService.getWishListDtoListByUserId(userId);
+            wishListService.getWishListDtoListByUserId(userId, PAGE, SIZE);
         });
 
         assertEquals("User dont have anything in wishlist", thrown.getMessage());
         assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
-        verify(repository, times(1)).findAllByUserId(any());
+        verify(repository, times(1)).findAllByUserId(wishList.getUserId(), PAGEABLE);
     }
 
     @Test

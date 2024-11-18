@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
@@ -26,6 +30,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class ItemServiceImplTest {
+
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
 
     @InjectMocks
     private ItemServiceImpl itemService;
@@ -52,7 +60,7 @@ class ItemServiceImplTest {
 
     public List<ItemDto> mockItemDtoList() {
         ItemDto item1 = new ItemDto(1L, "testItem1", 1L, "testDesc1", 100, Collections.emptyList(), 10);
-        ItemDto item2 = new ItemDto(2L, "testItem2", 1L, "testDesc2", 200,Collections.emptyList(), 20);
+        ItemDto item2 = new ItemDto(2L, "testItem2", 1L, "testDesc2", 200, Collections.emptyList(), 20);
         return List.of(item1, item2);
     }
 
@@ -60,13 +68,13 @@ class ItemServiceImplTest {
     void testGetAllItems() {
         List<Item> itemsList = mockItemList();
         List<ItemDto> itemDtoList = mockItemDtoList();
+        Page<Item> orderPage = new PageImpl<>(itemsList, PAGEABLE, 2);
 
-
-        when(itemRepository.findAll()).thenReturn(itemsList);
+        when(itemRepository.findAll(PAGEABLE)).thenReturn(orderPage);
         when(itemMapper.toItemDtos(itemsList)).thenReturn(itemDtoList);
 
-        assertEquals(itemService.getAllItems(), itemDtoList);
-        verify(itemRepository, times(1)).findAll();
+        assertEquals(itemService.getAllItems(PAGE, SIZE).getContent(), itemDtoList);
+        verify(itemRepository, times(1)).findAll(PAGEABLE);
     }
 
     @Test
@@ -129,7 +137,7 @@ class ItemServiceImplTest {
         when(itemRepository.findById(2L)).thenThrow(new AppException("item not found", HttpStatus.NOT_FOUND));
 
         AppException thrown = assertThrows(AppException.class, () -> {
-            itemService.deleteItem(2L); // Вызов метода, который должен выбросить исключение
+            itemService.deleteItem(2L);
         });
 
         assertEquals("item not found", thrown.getMessage());
@@ -138,5 +146,4 @@ class ItemServiceImplTest {
         verify(itemRepository, times(1)).findById(2L);
     }
 
-//    ItemDto updateItem(Long id, ItemDto itemDto);
 }

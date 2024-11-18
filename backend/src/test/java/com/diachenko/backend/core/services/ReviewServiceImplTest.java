@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
@@ -27,6 +31,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ReviewServiceImplTest {
+
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
@@ -78,22 +86,27 @@ class ReviewServiceImplTest {
 
     @Test
     void testGetReviewListByItemId() {
+
         LocalDateTime localDateTime = LocalDateTime.of(2024, 10, 28, 17, 15);
         long id = 1;
         Review review = new Review(id, mockItemList().get(0), 5, "TEXT FROM REVIEW", localDateTime, mockOrder());
         ReviewDto reviewDto = new ReviewDto(id, 1L, 5, "TEXT FROM REVIEW", localDateTime, 1L);
-        when(reviewRepository.findAllByItem_Id(id)).thenReturn(List.of(review));
+
+        Page<Review> page = new PageImpl<>(List.of(review), PAGEABLE, 1);
+        Page<ReviewDto> pageDto = new PageImpl<>(List.of(reviewDto), PAGEABLE, 1);
+
+        when(reviewRepository.findAllByItem_Id(id, PAGEABLE)).thenReturn(page);
         when(reviewMapper.toReviewDtoList(List.of(review))).thenReturn(List.of(reviewDto));
 
-        assertEquals(reviewService.getReviewListByItemId(id), List.of(reviewDto));
+        assertEquals(reviewService.getReviewListByItemId(id, PAGE, SIZE), pageDto);
     }
 
     @Test
     void testGetReviewListByItemId_AppException() {
         long id = 1;
-        when(reviewRepository.findAllByItem_Id(id)).thenThrow(new AppException("Review for item with id:" + id + " not found", HttpStatus.NOT_FOUND));
+        when(reviewRepository.findAllByItem_Id(id, PAGEABLE)).thenThrow(new AppException("Review for item with id:" + id + " not found", HttpStatus.NOT_FOUND));
         AppException thrown = assertThrows(AppException.class, () -> {
-            reviewService.getReviewListByItemId(id);
+            reviewService.getReviewListByItemId(id, PAGE, SIZE);
         });
         assertEquals("Review for item with id:" + id + " not found", thrown.getMessage());
         assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
@@ -119,55 +132,41 @@ class ReviewServiceImplTest {
     }
 
     @Test
-    void testCheckReview_True() {
+    void testIsReview_NotDuplicate_True() {
         LocalDateTime localDateTime = LocalDateTime.of(2024, 10, 28, 17, 15);
         long id = 1;
 
         ReviewPayload reviewPayload = new ReviewPayload(1L, 5, "TEXT FROM REVIEW", 1L);
         Review review = new Review(id, mockItemList().get(0), 5, "TEXT FROM REVIEW", localDateTime, mockOrder());
         ReviewDto reviewDto = new ReviewDto(id, 1L, 5, "TEXT FROM REVIEW", localDateTime, 1L);
+        Page<Review> page = new PageImpl<>(List.of(review), PageRequest.of(0, 1000), 1);
 
-        when(reviewRepository.findAllByItem_Id(id)).thenReturn(List.of(review));
-        when(reviewService.getReviewListByItemId(reviewPayload.itemId())).thenReturn(List.of(reviewDto));
+        when(reviewRepository.findAllByItem_Id(id, PageRequest.of(0, 1000))).thenReturn(page);
         when(reviewMapper.toReviewDtoFromPayload(reviewPayload)).thenReturn(reviewDto);
+        when(reviewMapper.toReviewDtoList(page.getContent())).thenReturn(List.of(reviewDto));
 
-        assertTrue(reviewService.checkReview(reviewPayload));
+//        reviewMapper.toReviewDtoFromPayload(payload);
+//        List<ReviewDto> reviewDtoList = reviewMapper.toReviewDtoList(list);
+
+        assertTrue(reviewService.isReviewAvailible(reviewPayload));
     }
 
     @Test
-    void testCheckReview_False() {
+    void testIsReview_NotDuplicate_False() {
         LocalDateTime localDateTime = LocalDateTime.of(2024, 10, 28, 17, 15);
         long id = 1;
 
         ReviewPayload reviewPayload = new ReviewPayload(1L, 5, "TEXT FROM REVIEW", 1L);
         Review review = new Review(id, mockItemList().get(0), 5, "TEXT FROM REVIEW", localDateTime, mockOrder());
-        ReviewDto reviewDto = new ReviewDto(id, 1L, 5, "TEXT FROM REVIEW", localDateTime, 1L);
         ReviewDto reviewDto2 = new ReviewDto(id, 2L, 5, "TEXT FROM REVIEW", localDateTime, 1L);
-        when(reviewRepository.findAllByItem_Id(id)).thenReturn(List.of(review));
-        when(reviewService.getReviewListByItemId(reviewPayload.itemId())).thenReturn(List.of(reviewDto));
+        Page<Review> page = new PageImpl<>(List.of(review), PageRequest.of(0, 1000), 1);
+
+        when(reviewRepository.findAllByItem_Id(id, PageRequest.of(0, 1000))).thenReturn(page);
         when(reviewMapper.toReviewDtoFromPayload(reviewPayload)).thenReturn(reviewDto2);
 
-        assertFalse(reviewService.checkReview(reviewPayload));
+        assertFalse(reviewService.isReviewAvailible(reviewPayload));
     }
 
-    @Test
-    void testCheckReview_False_Catch_AppException() {
-        LocalDateTime localDateTime = LocalDateTime.of(2024, 10, 28, 17, 15);
-        long id = 1;
-        ReviewPayload reviewPayload = new ReviewPayload(1L, 5, "TEXT FROM REVIEW", 1L);
-        Review review = new Review(id, mockItemList().get(0), 5, "TEXT FROM REVIEW", localDateTime, mockOrder());
-
-        when(reviewRepository.findAllByItem_Id(id)).thenReturn(List.of(review));
-        when(reviewService.getReviewListByItemId(reviewPayload.itemId())).thenThrow(new AppException("Review for item with id:" + id + " not found", HttpStatus.NOT_FOUND));
-
-        AppException thrown = assertThrows(AppException.class, () -> {
-            reviewService.getReviewListByItemId(reviewPayload.itemId());
-        });
-
-        assertEquals("Review for item with id:" + id + " not found", thrown.getMessage());
-        assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
-        assertFalse(reviewService.checkReview(reviewPayload));
-    }
 
     @Test
     void testUpdateReview() {
@@ -212,18 +211,18 @@ class ReviewServiceImplTest {
 
         Review review = new Review(id, mockItemList().get(0), 5, "TEXT FROM REVIEW", localDateTime, mockOrder());
         ReviewDto reviewDto = new ReviewDto(id, 1L, 5, "TEXT FROM REVIEW", localDateTime, 1L);
-        when(reviewRepository.findAll()).thenReturn(List.of(review));
+        when(reviewRepository.findAll(PAGEABLE)).thenReturn(new PageImpl<>(List.of(review), PAGEABLE, 1));
         when(reviewMapper.toReviewDtoList(List.of(review))).thenReturn(List.of(reviewDto));
 
-        assertEquals(reviewService.getAllReviews(), List.of(reviewDto));
+        assertEquals(reviewService.getAllReviews(PAGE, SIZE).getContent(), List.of(reviewDto));
     }
 
     @Test
     void testGetAllReviews_AppException() {
-        when(reviewRepository.findAll()).thenReturn(Collections.emptyList());
+        when(reviewRepository.findAll(PAGEABLE)).thenReturn(Page.empty());
 
         AppException thrown = assertThrows(AppException.class, () -> {
-            reviewService.getAllReviews();
+            reviewService.getAllReviews(PAGE, SIZE);
         });
 
         assertEquals("Reviews not found", thrown.getMessage());

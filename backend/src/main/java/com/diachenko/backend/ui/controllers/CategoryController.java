@@ -9,6 +9,7 @@ import com.diachenko.backend.core.services.CategoryServiceImpl;
 import com.diachenko.backend.dtos.CategoryDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,10 @@ public class CategoryController {
     private final CategoryServiceImpl categoryService;
 
     @GetMapping("")
-    public ResponseEntity<List<CategoryDto>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategoriesList());
+    public ResponseEntity<Page<CategoryDto>> getAllCategories(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(categoryService.getAllCategoriesList(page,size));
     }
 
     @GetMapping("{id}")

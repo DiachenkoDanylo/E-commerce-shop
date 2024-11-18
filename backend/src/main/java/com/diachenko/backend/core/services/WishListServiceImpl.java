@@ -11,11 +11,14 @@ import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.WishListMapper;
 import com.diachenko.backend.infrastructure.repositories.WishListRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,17 +29,19 @@ public class WishListServiceImpl implements WishListService {
     private final WishListMapper mapper;
 
     @Override
-    public List<WishList> getWishListListByUserId(Long userId) {
-        return repository.findAllByUserId(userId);
+    public Page<WishList> getWishListListByUserId(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return repository.findAllByUserId(userId, pageable);
     }
 
     @Override
-    public List<WishListDto> getWishListDtoListByUserId(Long userId) {
-        List<WishList> wishLists = repository.findAllByUserId(userId);
-        if (wishLists.isEmpty()) {
+    public Page<WishListDto> getWishListDtoListByUserId(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<WishList> wishLists = repository.findAllByUserId(userId, pageable);
+        if (wishLists.getContent().isEmpty()) {
             throw new AppException("User dont have anything in wishlist", HttpStatus.NOT_FOUND);
         } else {
-            return mapper.toWishListDtoList(wishLists);
+            return new PageImpl<>(mapper.toWishListDtoList(wishLists.getContent()), pageable, wishLists.getTotalPages());
         }
     }
 

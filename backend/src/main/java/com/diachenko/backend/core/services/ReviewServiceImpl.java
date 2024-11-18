@@ -12,6 +12,10 @@ import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.ReviewMapper;
 import com.diachenko.backend.infrastructure.repositories.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +29,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
     private final ItemServiceImpl itemService;
-    private final  OrderServiceImpl orderService;
+    private final OrderServiceImpl orderService;
 
     @Override
     public ReviewDto getReviewById(Long id) {
@@ -38,14 +42,16 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewDto> getReviewListByItemId(Long id) {
-        List<Review> reviewList = reviewRepository.findAllByItem_Id(id);
-        if (!reviewList.isEmpty()) {
-            return reviewMapper.toReviewDtoList(reviewList);
+    public Page<ReviewDto> getReviewListByItemId(Long id, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Review> reviewList = reviewRepository.findAllByItem_Id(id, pageable);
+        if (!reviewList.getContent().isEmpty()) {
+            return new PageImpl<>(reviewMapper.toReviewDtoList(reviewList.getContent()), pageable, reviewList.getTotalPages());
         } else {
             throw new AppException("Review for item with id:" + id + " not found", HttpStatus.NOT_FOUND);
         }
     }
+
 
     @Override
     public ReviewDto addReview(ReviewPayload payload) {
@@ -55,15 +61,13 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public boolean checkReview(ReviewPayload payload) {
-        List<ReviewDto> list;
-        try {
-            list = getReviewListByItemId(payload.itemId());
-        } catch (AppException e){
-            return false;
-        }
+    public boolean isReviewAvailible(ReviewPayload payload) {
+        List<Review> list;
+        Pageable pageable = PageRequest.of(0, 1000);
+        list = reviewRepository.findAllByItem_Id(payload.itemId(), pageable).getContent();
         ReviewDto review = reviewMapper.toReviewDtoFromPayload(payload);
-        Optional<ReviewDto> optional = list.stream().filter(s-> s.equals(review)).findFirst();
+        List<ReviewDto> reviewDtoList = reviewMapper.toReviewDtoList(list);
+        Optional<ReviewDto> optional = reviewDtoList.stream().filter(s -> s.equals(review)).findFirst();
         return optional.isPresent();
     }
 
@@ -94,10 +98,11 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<ReviewDto> getAllReviews() {
-        List<Review> reviewList = reviewRepository.findAll();
-        if (!reviewList.isEmpty()) {
-            return reviewMapper.toReviewDtoList(reviewList);
+    public Page<ReviewDto> getAllReviews(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Review> reviewList = reviewRepository.findAll(pageable);
+        if (!reviewList.getContent().isEmpty()) {
+            return new PageImpl<>(reviewMapper.toReviewDtoList(reviewList.getContent()), pageable, reviewList.getTotalPages());
         } else {
             throw new AppException("Reviews not found", HttpStatus.NOT_FOUND);
         }

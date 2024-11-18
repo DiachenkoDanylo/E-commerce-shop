@@ -5,18 +5,21 @@ package com.diachenko.backend.core.services;
 */
 
 import com.diachenko.backend.application.services.OrderService;
-import com.diachenko.backend.core.entities.OrderStatus;
-import com.diachenko.backend.dtos.OrderDto;
 import com.diachenko.backend.core.entities.Order;
+import com.diachenko.backend.core.entities.OrderStatus;
 import com.diachenko.backend.core.entities.User;
+import com.diachenko.backend.dtos.OrderDto;
 import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.OrderMapper;
 import com.diachenko.backend.infrastructure.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -28,24 +31,30 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     @Override
-    public List<OrderDto> getAllOrders() {
-        return orderMapper.toOrderDtoList(orderRepository.findAll());
+    public Page<OrderDto> getAllOrders(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orderDtoPage = orderRepository.findAll(pageable);
+        return new PageImpl<>(orderMapper.toOrderDtoList(orderDtoPage.getContent()), pageable, orderDtoPage.getTotalPages());
     }
 
     @Override
-    public List<OrderDto> getAllOrdersWithStatus(OrderStatus orderStatus) {
-        return orderMapper.toOrderDtoList(orderRepository.findAllByStatus(orderStatus));
+    public Page<OrderDto> getAllOrdersWithStatus(OrderStatus orderStatus, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orderDtoPage = orderRepository.findAllByStatus(orderStatus, pageable);
+        return new PageImpl<>(orderMapper.toOrderDtoList(orderDtoPage.getContent()), pageable, orderDtoPage.getTotalPages());
     }
 
     @Override
-    public List<OrderDto> getAllOrdersDtoByUserId(Long userId) {
-        if (orderRepository.findOrderByUserId(userId).isEmpty()) {
+    public Page<OrderDto> getAllOrdersDtoByUserId(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (orderRepository.findOrderByUserId(userId, pageable).getContent().isEmpty()) {
             System.out.println("User with id:" + userId + " didnt have any orders before \n Creating order...");
             User user = userServiceImpl.getUserById(userId);
             Order order = new Order(user, OrderStatus.CART);
             orderRepository.saveAndFlush(order);
         }
-        return orderMapper.toOrderDtoList(orderRepository.findOrderByUserId(userId));
+        Page<Order> orderDtoPage = orderRepository.findOrderByUserId(userId, pageable);
+        return new PageImpl<>(orderMapper.toOrderDtoList(orderDtoPage.getContent()), pageable, orderDtoPage.getTotalPages());
     }
 
     @Override
@@ -57,9 +66,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDto getCartOrderDtoByUserId(Long userId) {
-        if (orderRepository.findOrderByUserId(userId).isEmpty()) {
-            return orderMapper.toOrderDto(createEmptyCart(userId));
-        }
         Optional<Order> optional = orderRepository.findOrderByUserIdAndStatus(userId, OrderStatus.CART);
         if (optional.isPresent()) {
             return orderMapper.toOrderDto(optional.get());

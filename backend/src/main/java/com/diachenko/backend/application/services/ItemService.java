@@ -3,8 +3,7 @@ package com.diachenko.backend.application.services;
 import com.diachenko.backend.core.entities.Item;
 import com.diachenko.backend.core.entities.SearchCriteria;
 import com.diachenko.backend.dtos.ItemDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 /*  E-commerce shop
     25.09.2024
@@ -14,7 +13,7 @@ import java.util.List;
 public interface ItemService {
 
 
-    List<ItemDto> getAllItems();
+    Page<ItemDto> getAllItems(int page, int size);
 
     ItemDto getItemDto(Long id);
 
@@ -26,5 +25,5 @@ public interface ItemService {
 
     Item findItemById(Long itemId);
 
-    List<ItemDto> searchItems(SearchCriteria criteria);
+    Page<ItemDto> searchItems(SearchCriteria criteria, int page, int size);
 }

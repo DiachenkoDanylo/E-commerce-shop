@@ -9,6 +9,9 @@ import com.diachenko.backend.infrastructure.mappers.OrderItemMapper;
 import com.diachenko.backend.infrastructure.mappers.OrderMapper;
 import com.diachenko.backend.infrastructure.repositories.OrderItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +40,7 @@ public class OrderItemServiceImpl implements OrderItemService {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(orderMapper.toOrder(orderServiceImpl.getCartOrderDtoByUserId(userId)));
             inventoryServiceImpl.changeItemQuantity(itemId, quantity);
-            orderItem.setItem(itemMapper.toItem(itemServiceImpl.getItemDto(itemId),categoryService));
+            orderItem.setItem(itemMapper.toItem(itemServiceImpl.getItemDto(itemId), categoryService));
             orderItem.setQuantity(quantity);
             orderItem.setTotalPrice(itemServiceImpl.getItemDto(itemId).getBasePrice() * quantity);
             return orderItemRepository.save(orderItem);
@@ -47,8 +50,10 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     @Override
-    public List<OrderItemDto> getOrderItemList(Long id) {
-        return orderItemMapper.toOrderItemDtoList(orderItemRepository.findOrderItemsByOrderId(id));
+    public Page<OrderItemDto> getOrderItemList(Long id, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<OrderItem> orderItemPage = orderItemRepository.findOrderItemsByOrderId(id, pageable);
+        return new PageImpl<>(orderItemMapper.toOrderItemDtoList(orderItemPage.getContent()), pageable, orderItemPage.getTotalPages());
     }
 
     @Override

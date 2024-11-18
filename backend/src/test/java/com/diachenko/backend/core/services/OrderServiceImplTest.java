@@ -18,6 +18,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -31,50 +35,43 @@ import static org.mockito.Mockito.*;
 
 class OrderServiceImplTest {
 
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
     @Mock
     private OrderRepository orderRepository;
-
     @InjectMocks
     private OrderServiceImpl orderService;
-
     @Mock
     private UserServiceImpl userServiceImpl;
-
     @Mock
     private OrderMapperImpl orderMapper;
 
     @BeforeEach
     public void setUp() {
-        // Инициализируем моки
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
     @DisplayName("test CreateEmptyCart")
     void testCreateEmptyCart() {
-        // Мокаем данные
         User mockUser = new User();
         mockUser.setId(1L);
         mockUser.setLogin("Test User");
 
         when(userServiceImpl.getUserById(1L)).thenReturn(mockUser);
 
-        // Мокаем поведение orderRepository
         Order mockOrder = new Order(mockUser, OrderStatus.CART);
         when(orderRepository.saveAndFlush(any(Order.class))).thenReturn(mockOrder);
 
-        // Вызываем метод, который тестируем
         Order createdOrder = orderService.createEmptyCart(1L);
 
-        // Проверяем результат
         assertNotNull(createdOrder);
         assertEquals(OrderStatus.CART, createdOrder.getStatus());
         assertEquals(mockUser, createdOrder.getUser());
 
-        // Проверяем, что userServiceImpl был вызван с правильным параметром
         verify(userServiceImpl, times(1)).getUserById(1L);
 
-        // Проверяем, что orderRepository.saveAndFlush был вызван
         verify(orderRepository, times(1)).saveAndFlush(any(Order.class));
 
     }
@@ -82,26 +79,22 @@ class OrderServiceImplTest {
     @Test
     @DisplayName("test CreateEmptyCart_AppException")
     void testCreateEmptyCart_AppException() {
-        // Мокаем данные
+
         User mockUser = new User();
         mockUser.setId(1L);
         mockUser.setLogin("Test User");
 
         when(userServiceImpl.getUserById(1L)).thenThrow(new AppException("User not Found", HttpStatus.NOT_FOUND));
 
-        // Проверяем, что метод выбрасывает AppException при вызове
         AppException thrown = assertThrows(AppException.class, () -> {
-            orderService.createEmptyCart(1L); // Вызов метода, который должен выбросить исключение
+            orderService.createEmptyCart(1L);
         });
 
-        // Проверяем сообщение исключения (необязательно)
         assertEquals("User not Found", thrown.getMessage());
         assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
 
-        // Проверяем, что метод getUserById был вызван с параметром 1L
         verify(userServiceImpl, times(1)).getUserById(1L);
 
-        // Убеждаемся, что метод saveAndFlush не был вызван, так как пользователь не найден
         verify(orderRepository, never()).saveAndFlush(any(Order.class));
     }
 
@@ -115,48 +108,55 @@ class OrderServiceImplTest {
         orderDtos.add(orderDto1);
         orderDtos.add(orderDto2);
 
-        when(orderMapper.toOrderDtoList(anyList())).thenReturn(orderDtos);
+        Order order = new Order();
 
-        assertEquals(orderDtos, orderService.getAllOrders());
+        Page<Order> orderPage = new PageImpl<>(List.of(order), PAGEABLE, 1);
+
+        when(orderMapper.toOrderDtoList(orderPage.getContent())).thenReturn(orderDtos);
+        when(orderRepository.findAll(PAGEABLE)).thenReturn(orderPage);
+
+        assertEquals(orderDtos, orderService.getAllOrders(PAGE, SIZE).getContent());
     }
 
     @Test
     void testGetAllOrdersWithStatus() {
 
         List<OrderDto> orderDtos = new ArrayList<>();
-        UserDto user = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
-        orderDtos.add(new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CART, 0));
+        UserDto userDto = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
+        orderDtos.add(new OrderDto(1L, Collections.emptyList(), userDto, OrderStatus.CART, 0));
+        User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
 
-        when(orderMapper.toOrderDtoList(anyList())).thenReturn(orderDtos);
-        when(orderRepository.findAllByStatus(OrderStatus.CART)).thenReturn(Collections.emptyList());
+        Order order = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
+        Page<Order> orderPage = new PageImpl<>(List.of(order), PAGEABLE, 0);
 
-        assertEquals(orderService.getAllOrdersWithStatus(OrderStatus.CART), orderDtos);
-        assertEquals(orderService.getAllOrdersWithStatus(OrderStatus.CART).get(0).getUser().getFirstName(), orderDtos.get(0).getUser().getFirstName());
+        when(orderMapper.toOrderDtoList(orderPage.getContent())).thenReturn(orderDtos);
+        when(orderRepository.findAllByStatus(OrderStatus.CART, PAGEABLE)).thenReturn(orderPage);
+
+        assertEquals(orderService.getAllOrdersWithStatus(OrderStatus.CART, PAGE, SIZE).getContent(), orderDtos);
+        assertEquals(orderService.getAllOrdersWithStatus(OrderStatus.CART, PAGE, SIZE).getContent().get(0).getUser().getFirstName(), orderDtos.get(0).getUser().getFirstName());
     }
 
     @Test
     void testGetAllOrdersDtoByUserId_OrderList_empty() {
 
-        when(orderRepository.findOrderByUserId(1L)).thenReturn(Collections.emptyList());
-
         User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
-
 
         Order orderTest = new Order(null, null, userTest, OrderStatus.CART);
 
         when(userServiceImpl.getUserById(userTest.getId())).thenReturn(userTest);
+        when(orderRepository.findOrderByUserId(1L, PAGEABLE)).thenReturn(Page.empty());
 
         List<OrderDto> orderDtos = new ArrayList<>();
         UserDto user = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
         orderDtos.add(new OrderDto(null, null, user, OrderStatus.CART, 0));
 
+        when(orderMapper.toOrderDtoList(any())).thenReturn(orderDtos);
 
-        when(orderMapper.toOrderDtoList(anyList())).thenReturn(orderDtos);
-
-        assertEquals(orderService.getAllOrdersDtoByUserId(1L), orderDtos);
+        //method invocation
+        Page<OrderDto> result = orderService.getAllOrdersDtoByUserId(1L, PAGE, SIZE);
 
         verify(orderRepository, times(1)).saveAndFlush(orderTest);
-        verify(orderRepository, times(2)).findOrderByUserId(1L);
+        verify(orderRepository, times(2)).findOrderByUserId(1L, PAGEABLE);
     }
 
 
@@ -167,18 +167,22 @@ class OrderServiceImplTest {
 
         Order orderTest = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
 
-        when(orderRepository.findOrderByUserId(1L)).thenReturn(List.of(orderTest));
+        Page<Order> orderPage = new PageImpl<>(List.of(orderTest), PAGEABLE, 1);
+
+        when(orderRepository.findOrderByUserId(1L, PAGEABLE)).thenReturn(orderPage);
 
         List<OrderDto> orderDtos = new ArrayList<>();
         UserDto user = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
         orderDtos.add(new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CART, 0));
 
-        when(orderMapper.toOrderDtoList(List.of(orderTest))).thenReturn(orderDtos);
+        OrderDto orderDto = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CART, 0);
 
-        assertEquals(orderService.getAllOrdersDtoByUserId(1L), orderDtos);
+        when(orderMapper.toOrderDtoList(orderPage.getContent())).thenReturn(orderDtos);
+
+        assertEquals(orderService.getAllOrdersDtoByUserId(1L, PAGE, SIZE).getContent().get(0), orderDto);
         verify(userServiceImpl, times(0)).getUserById(any());
         verify(orderRepository, times(0)).saveAndFlush(orderTest);
-        verify(orderRepository, times(2)).findOrderByUserId(1L);
+        verify(orderRepository, times(2)).findOrderByUserId(1L, PAGEABLE);
     }
 
     @Test
@@ -187,7 +191,9 @@ class OrderServiceImplTest {
         User userTest = new User(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
         Order orderTest = new Order(1L, Collections.emptyList(), userTest, OrderStatus.CART);
 
-        when(orderRepository.findOrderByUserId(1L)).thenReturn(List.of(orderTest));
+        Page<Order> orderPage = new PageImpl<>(List.of(orderTest), PAGEABLE, 1);
+
+        when(orderRepository.findOrderByUserId(1L, PAGEABLE)).thenReturn(orderPage);
         when(orderRepository.findOrderByUserIdAndStatus(1L, OrderStatus.CART)).thenReturn(Optional.of(orderTest));
 
         UserDto user = new UserDto(1L, "testname", "testlastname", "testlogin", "testpass", "testemail", "TEST_AUTHORITY");
@@ -214,7 +220,7 @@ class OrderServiceImplTest {
 
         OrderDto orderDto = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CART, 0);
 
-        when(orderRepository.findOrderByUserId(userTest.getId())).thenReturn(Collections.emptyList());
+        when(orderRepository.findOrderByUserId(userTest.getId(), PAGEABLE)).thenReturn((Page.empty()));
         when(orderMapper.toOrderDto(orderTest)).thenReturn(orderDto);
         when(orderRepository.saveAndFlush(orderTest)).thenReturn(orderTest);
         when(userServiceImpl.getUserById(userTest.getId())).thenReturn(userTest);
@@ -235,17 +241,17 @@ class OrderServiceImplTest {
 
         OrderDto orderDto = new OrderDto(1L, Collections.emptyList(), user, OrderStatus.CART, 0);
 
+        Page<Order> orderPage = new PageImpl<>(List.of(orderTest), PAGEABLE, 1);
 
-        when(orderRepository.findOrderByUserId(userTest.getId())).thenReturn(List.of(orderTest));
+        when(orderRepository.findOrderByUserId(userTest.getId(), PAGEABLE)).thenReturn(orderPage);
         when(orderRepository.findOrderByUserIdAndStatus(userTest.getId(), OrderStatus.CART)).thenReturn(Optional.empty());
 
         when(orderService.createEmptyCart(userTest.getId())).thenReturn(orderTest);
         when(orderMapper.toOrderDto(orderTest)).thenReturn(orderDto);
 
         assertEquals(orderService.getCartOrderDtoByUserId(userTest.getId()), orderDto);
-        verify(orderRepository, times(1)).findOrderByUserId(userTest.getId());
+        verify(orderRepository, times(1)).findOrderByUserIdAndStatus(userTest.getId(), OrderStatus.CART);
         verify(orderRepository, times(1)).saveAndFlush(any());
-
     }
 
     @Test

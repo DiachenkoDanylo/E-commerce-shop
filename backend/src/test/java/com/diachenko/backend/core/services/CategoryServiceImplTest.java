@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
@@ -25,6 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class CategoryServiceImplTest {
+
+    private static final int PAGE = 0;
+    private static final int SIZE = 10;
+    private static final Pageable PAGEABLE = PageRequest.of(PAGE, SIZE);
 
     @InjectMocks
     private CategoryServiceImpl categoryService;
@@ -78,23 +85,23 @@ class CategoryServiceImplTest {
         Category category = new Category(1L, "testing category name", "testing category desc");
         CategoryDto categoryDto = new CategoryDto(1L, "testing category name", "testing category desc");
 
-        when(repository.findAll()).thenReturn(List.of(category));
+        when(repository.findAll(PAGEABLE)).thenReturn(new PageImpl<>(List.of(category), PAGEABLE, 1));
         when(categoryMapper.toCategoryDtos(List.of(category))).thenReturn(List.of(categoryDto));
 
-        assertEquals(List.of(categoryDto), categoryService.getAllCategoriesList());
+        assertEquals(List.of(categoryDto), categoryService.getAllCategoriesList(PAGE, SIZE).getContent());
     }
 
     @Test
     void testGetAllCategoriesList_AppException() {
-        when(repository.findAll()).thenReturn(Collections.emptyList());
+        when(repository.findAll(PAGEABLE)).thenReturn(new PageImpl<>(Collections.emptyList(), PAGEABLE, 0));
 
         AppException thrown = assertThrows(AppException.class, () -> {
-            categoryService.getAllCategoriesList();
+            categoryService.getAllCategoriesList(PAGE, SIZE);
         });
 
         assertEquals("There is no category yet", thrown.getMessage());
         assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
-        verify(repository, times(1)).findAll();
+        verify(repository, times(1)).findAll(PAGEABLE);
     }
 
     @Test
