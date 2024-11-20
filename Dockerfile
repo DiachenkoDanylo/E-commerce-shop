@@ -1,7 +1,7 @@
 #Take from java jdk as our build
 FROM eclipse-temurin:17.0.1_12-jdk AS build
 
-ARG JAR_FILE
+ARG JAR_FILEsudo
 WORKDIR /build
 #adding our 0001-snapshot etc to /build directory as application.jar file
 ADD $JAR_FILE application.jar
