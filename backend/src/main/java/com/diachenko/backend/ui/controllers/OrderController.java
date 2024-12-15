@@ -53,4 +53,10 @@ public class OrderController {
         return ResponseEntity.ok(orderServiceImpl.updateOrder(id, orderDto));
     }
 
+    @GetMapping("user/{userId}")
+    public ResponseEntity<Page<OrderDto>> getAllOrders(@PathVariable("userId") Long userId,
+                                                       @RequestParam(name = "page", defaultValue = "0") int page,
+                                                       @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(orderServiceImpl.getAllOrdersDtoByUserId(userId,page,size));
+    }
 }

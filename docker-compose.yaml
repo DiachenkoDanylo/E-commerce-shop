@@ -1,6 +1,19 @@
-name: e-commerce-shop
+﻿name: e-commerce-shop
+
+volumes:
+  cache:
+    driver: local
 
 services:
+  redis:
+    image: redis:7.2-rc-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - cache:/data
+    command: redis-server --save 20 1 --loglevel warning --requirepass ZGlhY2hlbmtvNjUx
+
   database:
     restart: always
     image: postgres:13
@@ -16,7 +29,7 @@ services:
   backend:
     restart: always
     build:
-      dockerfile: Dockerfile
+      dockerfile: backend/Dockerfile
       args:
         JAR_FILE: backend/target/backend-1.0-SNAPSHOT-exec.jar
     volumes:
@@ -25,11 +38,15 @@ services:
       - '8080:8080'
 
 #  frontend:
-#    build: .
+#    build:
+#      context: ./e-commerce-frontend
+#      dockerfile: Dockerfile
 #    container_name: angular-app
 #    ports:
 #      - '4200:4200'
-#    volumes:
-#      - ./frontend:/angular-app
 #    environment:
-#      - STYLE=css
+#      - CHOKIDAR_USEPOLLING = true # For live reload in Docker
+#    volumes:
+#      - ./e-commerce-frontend:/angular-app
+#    depends_on:
+#      - backend

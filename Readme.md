@@ -2,14 +2,14 @@
 
 ## Overview
 This is a backend application for an e-commerce store. 
-The application supports functionality for handling users, products, categories, reviews, orders, wishlists, and images, enabling full CRUD operations 
+The application supports functionality for handling users, products, categories, reviews, orders, wishlists, and imageDtos, enabling full CRUD operations 
 and offering JWT-based authentication and authorization.
 
 ## Features
 - User Authentication & Authorization (JWT)
 - Product, Category, Order, Review, Wishlist Management
 - RESTful API for client interaction
-- Image handling service for product and category images
+- Image handling service for product and category imageDtos
 - Dockerized for ease of local deployment
 - Search and filtering capabilities
 - Order tracking and history

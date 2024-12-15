@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /*  E-commerce-shop
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @Data
 @Setter
 @Getter
-public class Review {
+public class Review implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

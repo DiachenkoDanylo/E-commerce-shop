@@ -5,6 +5,7 @@ package com.diachenko.backend.application.services;
 */
 
 import com.diachenko.backend.core.entities.Image;
+import com.diachenko.backend.dtos.ImageDto;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -14,11 +15,11 @@ public interface ImageService {
 
     String getImageFormat(byte[] file) throws IOException;
 
-    String saveImageToItem(Long itemId, byte[] file) throws URISyntaxException, IOException;
+    ImageDto saveImageToItem(Long itemId, byte[] file) throws URISyntaxException, IOException;
 
-    List<Image> getListImageFromItem(Long itemId);
+    List<ImageDto> getListImageFromItem(Long itemId);
 
-    Image deleteImageById(Long imageId);
+    ImageDto deleteImageById(Long imageId);
 
     String deleteAllImagesFromItemById(Long itemId);
 }

@@ -8,6 +8,7 @@ import com.diachenko.backend.core.entities.Category;
 import com.diachenko.backend.core.entities.Image;
 import com.diachenko.backend.core.entities.Item;
 import com.diachenko.backend.core.services.ImageServiceImpl;
+import com.diachenko.backend.dtos.ImageDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -43,10 +44,15 @@ class ImageControllerTest {
         return List.of(image);
     }
 
+    List<ImageDto> testSetUpDto() {
+        ImageDto imageDto = new ImageDto(1L, "images/items/1/1.jpeg");
+        return List.of(imageDto);
+    }
+
     @Test
     @WithMockUser(username = "testuser", authorities = "{CLIENT}")
     void testGetImagesByItemId() throws Exception {
-        List<Image> images = testSetUp();
+        List<ImageDto> images = testSetUpDto();
         when(imageService.getListImageFromItem(1L)).thenReturn(images);
 
         mockMvc.perform(get(BASE_URI + "{itemDd}", 1L))
@@ -63,10 +69,10 @@ class ImageControllerTest {
                 "file",
                 "test-image.jpg",
                 MediaType.IMAGE_JPEG_VALUE,
-                "Sample Image Content".getBytes()
+                "Sample ImageDto Content".getBytes()
         );
-
-        when(imageService.saveImageToItem(1L, file.getBytes())).thenReturn("images/items/1/1.jpeg");
+        ImageDto imageDto = new ImageDto(1L, "images/items/1/1.jpeg");
+        when(imageService.saveImageToItem(1L, file.getBytes())).thenReturn(imageDto);
         mockMvc.perform(multipart(BASE_URI + "{itemId}", 1L)
                         .file(file)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -78,20 +84,20 @@ class ImageControllerTest {
     @Test
     @WithMockUser(username = "testuser", authorities = "{ADMIN}")
     void testDeleteImageById_All() throws Exception {
-        when(imageService.deleteAllImagesFromItemById(1L)).thenReturn("All images deleted for item 1");
+        when(imageService.deleteAllImagesFromItemById(1L)).thenReturn("All imageDtos deleted for item 1");
 
         mockMvc.perform(delete(BASE_URI + "{itemId}", 1L)
                         .param("all", "true")
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(content().string("All images deleted for item 1"));
+                .andExpect(content().string("All imageDtos deleted for item 1"));
     }
 
     @Test
     @WithMockUser(username = "testuser", authorities = "{ADMIN}")
     void testDeleteImageById_Single() throws Exception {
 
-        when(imageService.deleteImageById(1L)).thenReturn(testSetUp().get(0));
+        when(imageService.deleteImageById(1L)).thenReturn(testSetUpDto().get(0));
 
         mockMvc.perform(delete(BASE_URI + "{itemId}", 1L)
                         .with(csrf()))

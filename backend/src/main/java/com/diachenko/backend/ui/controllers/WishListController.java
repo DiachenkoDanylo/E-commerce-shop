@@ -11,6 +11,7 @@ import com.diachenko.backend.dtos.WishListDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,5 +42,13 @@ public class WishListController {
         User user = userService.getUserByLoginAuth(auth);
         wishListService.removeItemFromWishList(user.getId(), itemId);
         return ResponseEntity.ok("Item removed");
+    }
+
+    @GetMapping("user/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Page<WishListDto>> getWishListListByUserId(@PathVariable("userId") Long userId,
+                                                                   @RequestParam(name = "page", defaultValue = "0") int page,
+                                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(wishListService.getWishListDtoListByUserId(userId, page, size));
     }
 }

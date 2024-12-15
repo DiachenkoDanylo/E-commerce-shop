@@ -3,11 +3,17 @@ package com.diachenko.backend.core.services;
 import com.diachenko.backend.application.services.ImageService;
 import com.diachenko.backend.core.entities.Image;
 import com.diachenko.backend.core.entities.Item;
+import com.diachenko.backend.dtos.ImageDto;
 import com.diachenko.backend.exceptions.AppException;
+import com.diachenko.backend.infrastructure.mappers.ImageMapper;
+import com.diachenko.backend.infrastructure.mappers.ItemMapper;
 import com.diachenko.backend.infrastructure.repositories.ImageRepository;
 import com.diachenko.backend.infrastructure.repositories.ItemRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -35,10 +41,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService {
 
-    private static final String IMAGE_PATH_ITEMS = "file:///app/images/items";
+    private static final String IMAGE_PATH_ITEMS = "file:///app/imageDtos/items";
     private final ItemRepository itemRepository;
     private final ItemServiceImpl itemService;
     private final ImageRepository imageRepository;
+    private final ImageMapper imageMapper;
 
     @Override
     public String getImageFormat(byte[] file) throws IOException {
@@ -57,7 +64,10 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public String saveImageToItem(Long itemId, byte[] file) throws URISyntaxException, IOException {
+    @Caching(cacheable = {
+            @Cacheable(value = "imageDto", key = "#p0")
+            })
+    public ImageDto saveImageToItem(Long itemId, byte[] file) throws URISyntaxException, IOException {
         // Find the item by its ID
         Item item = itemService.findItemById(itemId);
 
@@ -79,24 +89,27 @@ public class ImageServiceImpl implements ImageService {
         Image image = new Image(null, imagePath.toFile().getAbsolutePath(), item);
         item.addImageToItem(image);
         itemRepository.save(item);
-        return imagePath.toFile().getAbsolutePath();
+        return imageMapper.toImageDto(image);
     }
 
     @Override
-    public List<Image> getListImageFromItem(Long itemId) {
-        return itemService.findItemById(itemId).getImages();
+    @Cacheable(value = "imageDto", key = "#p0")
+    public List<ImageDto> getListImageFromItem(Long itemId) {
+        return imageMapper.toImageDtoList(itemService.findItemById(itemId).getImages());
     }
 
     @Override
-    public Image deleteImageById(Long imageId) {
-        Image imageToDelete = imageRepository.findById(imageId).orElseThrow(
-                () -> new AppException("Image with id =" + imageId + "was not found", HttpStatus.NOT_FOUND));
+    @CacheEvict(value = "ItemDto", key = "#p0")
+    public ImageDto deleteImageById(Long imageId) {
+        Image imageDtoToDelete = imageRepository.findById(imageId).orElseThrow(
+                () -> new AppException("ImageDto with id =" + imageId + "was not found", HttpStatus.NOT_FOUND));
         imageRepository.deleteById(imageId);
-        return imageToDelete;
+        return imageMapper.toImageDto(imageDtoToDelete);
     }
 
     @Transactional
     @Override
+    @CacheEvict(value = "ItemDto", key = "#p0")
     public String deleteAllImagesFromItemById(Long itemId) {
         Item item = itemService.findItemById(itemId);
         imageRepository.deleteAllByItem_Id(itemId);

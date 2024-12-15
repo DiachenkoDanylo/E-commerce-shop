@@ -8,6 +8,7 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.List;
 
 @AllArgsConstructor
@@ -16,7 +17,7 @@ import java.util.List;
 @Data
 @Getter
 @Setter
-public class ItemDto {
+public class ItemDto implements Serializable {
 
     @Nullable
     private Long id;

@@ -1,7 +1,6 @@
 package com.diachenko.backend.ui.controllers;
-
-import com.diachenko.backend.core.entities.Image;
 import com.diachenko.backend.core.services.ImageServiceImpl;
+import com.diachenko.backend.dtos.ImageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +23,7 @@ public class ImageController {
     private final ImageServiceImpl imageService;
 
     @GetMapping("{itemId}")
-    public ResponseEntity<List<Image>> getImagesByItemId(@PathVariable("itemId") Long itemId) {
+    public ResponseEntity<List<ImageDto>> getImagesByItemId(@PathVariable("itemId") Long itemId) {
         return ResponseEntity.ok(imageService.getListImageFromItem(itemId));
     }
 
@@ -32,7 +31,7 @@ public class ImageController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> saveImage(@PathVariable("itemId") Long itemId, @RequestParam("file") MultipartFile file)
             throws IOException, URISyntaxException {
-        return ResponseEntity.ok(imageService.saveImageToItem(itemId, file.getBytes()));
+        return ResponseEntity.ok(imageService.saveImageToItem(itemId, file.getBytes()).getImageUrl());
     }
 
     @DeleteMapping("{itemId}") // <-if all != true  -> itemId = imageId

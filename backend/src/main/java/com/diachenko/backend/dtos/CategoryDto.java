@@ -4,6 +4,8 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
+
 /*  E-commerce-shop
     29.10.2024
     @author DiachenkoDanylo
@@ -15,7 +17,7 @@ import lombok.*;
 @Data
 @Getter
 @Setter
-public class CategoryDto {
+public class CategoryDto implements Serializable {
 
     @Nullable
     private Long id;

@@ -9,6 +9,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "images")
 @AllArgsConstructor
@@ -17,7 +19,7 @@ import lombok.*;
 @Data
 @Setter
 @Getter
-public class Image {
+public class Image implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
