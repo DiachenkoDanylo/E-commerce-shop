@@ -7,7 +7,9 @@ package com.diachenko.backend.core.services;
 import com.diachenko.backend.core.entities.Category;
 import com.diachenko.backend.core.entities.Image;
 import com.diachenko.backend.core.entities.Item;
+import com.diachenko.backend.dtos.ImageDto;
 import com.diachenko.backend.exceptions.AppException;
+import com.diachenko.backend.infrastructure.mappers.ImageMapper;
 import com.diachenko.backend.infrastructure.repositories.ImageRepository;
 import com.diachenko.backend.infrastructure.repositories.ItemRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,9 @@ class ImageServiceImplTest {
     private ItemServiceImpl itemService;
     @Mock
     private ImageRepository imageRepository;
+    @Mock
+    private ImageMapper imageMapper;
+
 
     @BeforeEach
     void setUp() {
@@ -70,10 +75,13 @@ class ImageServiceImplTest {
     void testGetListImageFromItem() {
         Category category = new Category(1L, "testing category", "testing description");
         Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, null, 10);
+        ImageDto imageDto = new ImageDto(1L, "images/items/1/1.jpeg");
         Image image = new Image(1L, "images/items/1/1.jpeg", item1);
         item1.setImages(List.of(image));
+
         when(itemService.findItemById(1L)).thenReturn(item1);
-        assertEquals(imageService.getListImageFromItem(1L), List.of(image));
+        when(imageMapper.toImageDtoList(anyList())).thenReturn(List.of(imageDto));
+        assertEquals(imageService.getListImageFromItem(1L), List.of(imageDto));
     }
 
     @Test
@@ -90,10 +98,12 @@ class ImageServiceImplTest {
         Category category = new Category(1L, "testing category", "testing description");
         Item item1 = new Item(1L, "testItem1", category, "testDesc1", 100, null, 10);
         Image image = new Image(1L, "images/items/1/1.jpeg", item1);
+        ImageDto imageDto = new ImageDto(1L, "images/items/1/1.jpeg");
         item1.setImages(List.of(image));
 
         when(imageRepository.findById(1L)).thenReturn(Optional.of(image));
-        assertEquals(imageService.deleteImageById(1L), image);
+        when(imageMapper.toImageDto(any())).thenReturn(imageDto);
+        assertEquals(imageService.deleteImageById(1L), imageDto);
 
         verify(imageRepository, times(1)).deleteById(image.getId());
     }
@@ -101,13 +111,13 @@ class ImageServiceImplTest {
     @Test
     void testDeleteImageById_AppException() {
         when(imageRepository.findById(1L)).thenThrow(
-                new AppException("Image with id =" + 1L + "was not found", HttpStatus.NOT_FOUND));
+                new AppException("ImageDto with id =" + 1L + "was not found", HttpStatus.NOT_FOUND));
 
         AppException thrown = assertThrows(AppException.class, () -> {
             imageRepository.findById(1L);
         });
 
-        assertEquals(thrown.getMessage(), "Image with id =" + 1L + "was not found");
+        assertEquals(thrown.getMessage(), "ImageDto with id =" + 1L + "was not found");
         assertEquals(HttpStatus.NOT_FOUND, thrown.getStatus());
     }
 

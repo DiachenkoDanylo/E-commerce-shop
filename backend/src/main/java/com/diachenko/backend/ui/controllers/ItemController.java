@@ -9,6 +9,9 @@ import com.diachenko.backend.core.services.UserServiceImpl;
 import com.diachenko.backend.dtos.ItemDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,8 +35,8 @@ public class ItemController {
 
     @GetMapping("/")
     public ResponseEntity<Page<ItemDto>> allItems(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            @RequestParam(name = "page", defaultValue = "0") final int page,
+            @RequestParam(name = "size", defaultValue = "10") final int size
     ) {
         return ResponseEntity.ok(itemService.getAllItems(page, size));
     }
@@ -46,6 +49,7 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
+//    @Cacheable(value = "items")
     public ResponseEntity<ItemDto> getItem(@PathVariable("id") Long id) {
         return ResponseEntity.ok(itemService.getItemDto(id));
     }
@@ -53,12 +57,14 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
+//    @CacheEvict(value = "items", allEntries = true)
     public ResponseEntity<ItemDto> deleteItem(@PathVariable("id") Long id) {
         return ResponseEntity.ok(itemService.deleteItem(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
+//    @CachePut(value = "items")
     public ResponseEntity<ItemDto> updateItem(@PathVariable("id") Long id, @Valid @RequestBody ItemDto itemDto) {
         return ResponseEntity.ok(itemService.updateItem(id, itemDto));
     }
@@ -71,6 +77,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
+//    @Cacheable(value = "itemsSearchPage")
     public ResponseEntity<Page<ItemDto>> searchItems(
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "categoryId", required = false) Long categoryId,

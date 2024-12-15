@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
+import java.io.Serializable;
+
 /*  E-commerce-shop
     29.10.2024
     @author DiachenkoDanylo
@@ -19,7 +21,7 @@ import org.hibernate.validator.constraints.Length;
 @Data
 @Setter
 @Getter
-public class Category {
+public class Category implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

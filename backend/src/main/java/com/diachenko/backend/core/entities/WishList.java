@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 @Data
 @Setter
 @Getter
-public class WishList {
+public class WishList implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

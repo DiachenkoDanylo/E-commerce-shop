@@ -23,7 +23,7 @@ public class SecurityBeans {
     private static final String ROLE_USER = "CLIENT";
 
     private static final String[] AUTHORIZED_ROUTES = {
-            "/items/**", "/review/**", "/bucket/**", "/category/**", "/wishlist/**", "/images/**"
+            "/items/**", "/review/**", "/bucket/**", "/category/**", "/wishlist/**", "/images/**", "/files/**"
     };
 
     private static final String[] PUBLIC_ROUTES = {
@@ -46,8 +46,9 @@ public class SecurityBeans {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers(PUBLIC_ROUTES).permitAll()
-                        .requestMatchers(AUTHORIZED_ROUTES).hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
-                        .anyRequest().authenticated());
+//                        .requestMatchers(AUTHORIZED_ROUTES).hasAnyAuthority(ROLE_ADMIN, ROLE_USER)
+                        .requestMatchers(AUTHORIZED_ROUTES).permitAll());
+//                        .anyRequest().authenticated());
         return http.build();
     }
 

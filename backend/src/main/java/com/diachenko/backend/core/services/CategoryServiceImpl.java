@@ -11,6 +11,10 @@ import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.CategoryMapper;
 import com.diachenko.backend.infrastructure.repositories.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -32,11 +36,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = "categoryDto",  key = "#p0")
     public CategoryDto getCategoryDtoById(Long id) {
         return categoryMapper.toCategoryDto(getCategoryById(id));
     }
 
     @Override
+    @Cacheable(value = "allCategoriesPage")
     public Page<CategoryDto> getAllCategoriesList(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Category> categories = categoryRepository.findAll(pageable);
@@ -48,6 +54,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Caching(cacheable = {
+            @Cacheable(value = "categoryDto", key = "#p0.id")
+    })
     public CategoryDto addCategory(CategoryDto categoryDto) {
         Category category = categoryMapper.toCategory(categoryDto);
 
@@ -57,6 +66,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = "categoryDto", key = "#p0")
     public CategoryDto deleteCategory(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new AppException("category not found", HttpStatus.NOT_FOUND));
         categoryRepository.deleteById(id);
@@ -65,6 +75,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Caching(put = {
+            @CachePut(value = "categoryDto", key = "#p0")
+    })
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new AppException("category not found", HttpStatus.NOT_FOUND));
         categoryMapper.updateCategory(category, categoryMapper.toCategory(categoryDto));

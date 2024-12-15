@@ -1,4 +1,15 @@
 spring:
+  cache:
+    type: redis
+    cache-names: redis-cache
+  data:
+    redis:
+      host: 172.17.0.1
+      port: 6379
+      password: ZGlhY2hlbmtvNjUx
+#  web:
+#    resources:
+#      static-locations: file:/app/images/
   servlet:
     multipart:
       max-file-size: 6MB

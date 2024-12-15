@@ -8,13 +8,15 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
 @Getter
 @Setter
-public class ImageDto {
+public class ImageDto  implements Serializable {
 
     @Nullable
     private Long id;

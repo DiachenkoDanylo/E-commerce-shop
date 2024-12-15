@@ -12,13 +12,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 @Table(name = "order_items")
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @ToString(exclude = "order")
-public class OrderItem {
+public class OrderItem implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

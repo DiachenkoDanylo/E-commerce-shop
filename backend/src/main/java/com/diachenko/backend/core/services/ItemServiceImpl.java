@@ -9,6 +9,10 @@ import com.diachenko.backend.exceptions.AppException;
 import com.diachenko.backend.infrastructure.mappers.ItemMapper;
 import com.diachenko.backend.infrastructure.repositories.ItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +36,7 @@ public class ItemServiceImpl implements ItemService {
     private final CategoryServiceImpl categoryService;
 
     @Override
+    @Cacheable(value = "allItemsPage")
     public Page<ItemDto> getAllItems(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Item> itemPage = itemRepository.findAll(pageable);
@@ -39,12 +44,16 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Cacheable(value = "ItemDto",  key = "#p0")
     public ItemDto getItemDto(Long id) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new AppException(ERROR_NOT_FOUND, HttpStatus.NOT_FOUND));
         return itemMapper.toItemDto(item);
     }
 
     @Override
+    @Caching(cacheable = {
+            @Cacheable(value = "ItemDto", key = "#p0.id")
+    })
     public ItemDto createItem(ItemDto itemDto) {
         Item item = itemMapper.toItem(itemDto, categoryService);
 
@@ -54,6 +63,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @CacheEvict(value = "ItemDto", key = "#p0")
     public ItemDto deleteItem(Long id) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new AppException(ERROR_NOT_FOUND, HttpStatus.NOT_FOUND));
         itemRepository.deleteById(id);
@@ -61,6 +71,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Caching(put = {
+        @CachePut(value = "ItemDto", key = "#p0")
+    })
     public ItemDto updateItem(Long id, ItemDto itemDto) {
         Item item = itemRepository.findById(id).orElseThrow(() -> new AppException(ERROR_NOT_FOUND, HttpStatus.NOT_FOUND));
         itemMapper.updateItem(item, itemMapper.toItem(itemDto, categoryService));
@@ -76,6 +89,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Cacheable(value = "ItemService::searchItems")
     public Page<ItemDto> searchItems(SearchCriteria criteria, int page, int size) {
         Specification<Item> spec = Specification.where(ItemSpecifications.hasKeyword(criteria.getKeyword()))
                 .and(ItemSpecifications.hasCategory(criteria.getCategoryId()))
