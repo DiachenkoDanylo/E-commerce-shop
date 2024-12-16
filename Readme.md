@@ -9,7 +9,7 @@ and offering JWT-based authentication and authorization.
 - User Authentication & Authorization (JWT)
 - Product, Category, Order, Review, Wishlist Management
 - RESTful API for client interaction
-- Image handling service for product and category imageDtos
+- Image handling service for product and category image
 - Dockerized for ease of local deployment
 - Search and filtering capabilities
 - Order tracking and history
@@ -34,6 +34,7 @@ and offering JWT-based authentication and authorization.
 ## Getting Started
 
 ### Cloning the Repository
+
 ```bash
 git clone https://github.com/DiachenkoDanylo/E-commerce-shop.git
 cd E-commerce-shop
