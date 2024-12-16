@@ -34,10 +34,6 @@ and offering JWT-based authentication and authorization.
 ## Getting Started
 
 ### Cloning the Repository
-#### You need to have :
-- **Docker**
-
-Using Bash or Idea terminal 
 
 ```bash
 git clone https://github.com/DiachenkoDanylo/E-commerce-shop.git
